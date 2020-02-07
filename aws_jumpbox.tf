@@ -76,16 +76,6 @@ resource "aws_instance" "jump" {
   #  destination = "/etc/systemd/system/handle_bootstrap.service"
   #}
 
-  provisioner "file" {
-    source      = "provisioning/handle_register.py"
-    destination = "/home/ubuntu/handle_register.py"
-  }
-
-  provisioner "file" {
-    source      = "provisioning/handle_register.service"
-    destination = "/home/ubuntu/handle_register.service"
-  }
-
   #provisioner "file" {
   #  source      = "provisioning/create_backup_user.yml"
   #  destination = "/root/create_backup_user.yml"
@@ -101,17 +91,6 @@ resource "aws_instance" "jump" {
   #  destination = "/usr/local/bin/cleanup_controllers.py"
   #}
 
-  #provisioner "remote-exec" {
-  #  inline = [
-  #    "sudo mv /home/ubuntu/handle_register.py /usr/local/bin/handle_register.py",
-  #    "sudo mv /home/ubuntu/handle_register.service /etc/systemd/system/handle_register.py",
-  #    "sudo sed -i 's/^bind 127.0.0.1$//' /etc/redis/redis.conf",
-  #    "sudo systemctl daemon-reload", 
-  #    "sudo systemctl restart redis",
-  #    "sudo systemctl enable handle_register",
-  #    "sudo systemctl start handle_register"
-  #  ]
-  #}
   provisioner "local-exec"{
     command = "ansible-playbook -i '${aws_instance.jump.public_ip},' --private-key ${local.private_key_filename} --user ubuntu provision_jumpbox.yml"
   }

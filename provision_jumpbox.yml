@@ -22,6 +22,11 @@
       owner: aviadmin
       group: aviadmin
       mode: '0600'
+  - lineinfile:
+      dest: /etc/redis/redis.conf
+      state: absent
+      regexp: '^bind 127.0.0.1$'
+    notify: Start redis
   - copy:
       src: provisioning/handle_register.py
       dest: /usr/local/bin/handle_register.py
@@ -30,6 +35,11 @@
       dest: /etc/systemd/system/handle_register.service
     notify: Start handle_register
   handlers:
+    - name: Start redis
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: redis
     - name: Start handle_register
       systemd:
         state: restarted

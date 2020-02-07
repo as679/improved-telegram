@@ -1,0 +1,16 @@
+[Unit]
+Description=Python daemon
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/bin/python /usr/local/bin/handle_register.py
+
+# Give the script some time to startup
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target

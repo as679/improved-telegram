@@ -1,0 +1,172 @@
+---
+- name: "Wait for the portal to become active"
+  uri:
+    url: "https://{{ inventory_hostname }}/api/initial-data"
+    validate_certs: no
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 300
+  delay: 10
+
+- name: Refresh in-memory inventory
+  meta: refresh_inventory
+
+- name: Prepare Avi credentials
+  set_fact:
+    avi_credentials: {}
+
+- name: Prepare Avi credentials
+  set_fact:
+    avi_credentials: "{{ avi_credentials | combine({ item.key: item.value }) }}"
+  with_items:
+  - { key: 'password', value: "{{ hostvars['jumpbox.student.lab']['Lab_avi_admin_password'] }}" }
+  - { key: 'api_version', value: "{{ result['json']['version']['Version'] }}" }
+  - { key: 'controller', value: "{{ avi_creds['controller'] }}" }
+  - { key: 'username', value: "{{ avi_creds['username'] }}" }
+
+- name: Update admin user account if required
+  avi_useraccount:
+    avi_credentials: "{{ avi_credentials }}"
+    old_password: "{{ hostvars['jumpbox.student.lab']['Lab_avi_default_password'] }}"
+  ignore_errors: yes
+
+- name: Basic system configuration
+  avi_systemconfiguration:
+    avi_credentials: "{{ avi_credentials }}"
+    dns_configuration:
+      server_list:
+        - addr: "{{ hostvars['jumpbox.student.lab']['privateIp'] }}"
+          type: V4
+        - addr: 8.8.4.4
+          type: V4
+    ntp_configuration:
+      ntp_server_list:
+        - addr: 0.pool.ntp.org
+          type: DNS
+        - addr: 1.pool.ntp.org
+          type: DNS
+        - addr: 2.pool.ntp.org
+          type: DNS
+        - addr: 3.pool.ntp.org
+          type: DNS
+
+- name: Create backup admin account
+  avi_api_session:
+    avi_credentials: "{{ avi_credentials }}"
+    http_method: post
+    path: user
+    data:
+      require_password_confirmation: false
+      is_active: true
+      is_superuser: true
+      access:
+        - tenant_ref: '/api/tenant?name=admin'
+          role_ref: '/api/role?name=System-Admin'
+      default_tenant_ref: '/api/tenant?name=admin'
+      name: "{{ hostvars['jumpbox.student.lab']['Lab_avi_backup_admin_username'] }}"
+      username: "{{ hostvars['jumpbox.student.lab']['Lab_avi_backup_admin_username'] }}"
+      password: "{{ hostvars['jumpbox.student.lab']['Lab_avi_backup_admin_password'] }}"
+
+- name: Define AWS cloud configuration
+  avi_cloud:
+    avi_credentials: "{{ avi_credentials }}"
+    name: AWS
+    vtype: CLOUD_AWS
+    aws_configuration:
+      use_iam_roles: true
+      region: "{{ hostvars['jumpbox.student.lab']['region'] }}"
+      vpc_id: "{{ hostvars['jumpbox.student.lab']['Lab_vpc_id'] }}"
+      zones:
+        - availability_zone: "{{ hostvars['jumpbox.student.lab']['availabilityZone'] }}"
+          mgmt_network_name: "{{ hostvars['jumpbox.student.lab']['Lab_avi_management_network'] }}"
+  register: cloud
+
+
+- set_fact:
+    app_pool_servers: "{{ app_pool_servers | default([]) + [{'port': 80 , 'ip': {'type': 'V4', 'addr': hostvars[item]['privateIp'] }}]}}"
+  when: hostvars[item]['Lab_Group'] == "servers"
+  with_inventory_hostnames: all
+
+- name: Build VIP network details
+  avi_api_session:
+    avi_credentials: "{{ avi_credentials }}"
+    http_method: get
+    path: "networksubnetlist?name={{ item }}&cloud_uuid={{ cloud['obj']['uuid'] }}"
+  register: subnet
+  with_items:
+    - "{{ hostvars['jumpbox.student.lab']['Lab_avi_vip_network'] }}"
+
+- name: Define DNS Virtual Service
+  import_role:
+    name: avinetworks.aviconfig
+  vars:
+    avi_credentials: "{{ avi_credentials }}"
+    avi_config:
+      vsvip:
+        - name: vsvip_dns
+          cloud_ref: '/api/cloud?name=AWS'
+          vip:
+            - auto_allocate_ip: true
+              subnet_uuid: "{{ subnet['results'][0]['obj']['results'][0]['uuid'] }}"
+              auto_allocate_floating_ip: true
+      virtualservice:
+        - name: "{{ 'vs_dns_' + hostvars['jumpbox.student.lab']['region'] }}"
+          cloud_ref: '/api/cloud?name=AWS'
+          application_profile_ref: '/api/applicationprofile?name=System-DNS'
+          network_profile_ref: '/api/networkprofile/?name=System-UDP-Per-Pkt'
+          services:
+            - port: 53
+            - port: 53
+              override_network_profile_ref: '/api/networkprofile/?name=System-TCP-Proxy'
+          vsvip_ref: '/api/vsvip?name=vsvip_dns'
+- name: Define App Virtual Service
+  import_role:
+    name: avinetworks.aviconfig
+  vars:
+    avi_credentials: "{{ avi_credentials }}"
+    avi_config:
+      pool:
+        - name: app_pool
+          cloud_ref: '/api/cloud?name=AWS'
+          default_server_port: 80
+          servers: '{{ app_pool_servers }}'
+          health_monitor_refs:
+            - '/api/healthmonitor?name=System-HTTP'
+      vsvip:
+        - name: vsvip_app
+          cloud_ref: '/api/cloud?name=AWS'
+          vip:
+            - auto_allocate_ip: true
+              subnet_uuid: "{{ subnet['results'][0]['obj']['results'][0]['uuid'] }}"
+              auto_allocate_floating_ip: true
+      virtualservice:
+        - name: "{{ 'vs_app_' + hostvars['jumpbox.student.lab']['region'] }}"
+          cloud_ref: '/api/cloud?name=AWS'
+          #pool_ref: '/api/pool?name=app_pool'
+          application_profile_ref: '/api/applicationprofile?name=System-HTTP'
+          services:
+            - port: 80
+          vsvip_ref: '/api/vsvip?name=vsvip_app'
+
+- name: Build VIP network details
+  avi_api_session:
+    avi_credentials: "{{ avi_credentials }}"
+    http_method: get
+    path: "virtualservice?include_name&services.0.port=53"
+  register: dns_vip
+
+- set_fact:
+    student_id: "{{ inventory_hostname | regex_replace('^controller.student(\\d+).lab', '\\1') }}"
+    student_domain: "{{ inventory_hostname | regex_replace('controller.','') }}"
+    dns_vs_ip: "{{ dns_vip['obj']['results'][0]['vip'][0]['ip_address']['addr'] }}"
+
+- group_by:
+    key: "{{ student_id }}"
+- group_by:
+    key: "{{ student_domain }}"
+- group_by:
+    key: "{{ dns_vs_ip }}"
+
+- debug:
+    var: hostvars[inventory_hostname]['dns_vs_ip']

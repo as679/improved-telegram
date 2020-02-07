@@ -1,0 +1,14 @@
+---
+#- hosts: controllers
+#  vars:
+#    avi_credentials:
+#      controller: "{{ inventory_hostname }}"
+#      username: admin
+#      password: "{{ hostvars['jumpbox.student.lab']['Lab_avi_default_password'] }}"
+#  roles:
+#    - avinetworks.avisdk
+#    - controllers
+
+- hosts: servers
+  roles:
+  - post_install_servers

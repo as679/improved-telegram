@@ -1,0 +1,43 @@
+---
+- name: "wait for active portal"
+  uri:
+    url: "https://{{ ctl_ip }}/"
+    validate_certs: no
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 300
+  delay: 10
+
+- name: Check if user exists on Avi
+  avi_api_session:
+    controller: "{{ ctl_ip }}"
+    username: "{{ ctl_username }}"
+    password: "{{ ctl_password }}"
+    http_method: get
+    path: user?name={{ item.username }}
+  register: user_exists
+  with_items:
+    - "{{ avi_users }}"
+
+- name: Create User on Avi
+  avi_api_session:
+    controller: "{{ ctl_ip }}"
+    username: "{{ ctl_username }}"
+    password: "{{ ctl_password }}"
+    http_method: post
+    path: user
+    data:
+      require_password_confirmation: false
+      is_active: true
+      is_superuser: true
+      access:
+        - tenant_ref: '/api/tenant?name=admin'
+          role_ref: '/api/role?name=System-Admin'
+      default_tenant_ref: '/api/tenant?name=admin'
+      name: "{{ item.item.username }}"
+      username: "{{ item.item.username }}"
+      password: "{{ item.item.password }}"
+  when: item.obj.count < 1
+  with_items:
+    - "{{ user_exists.results }}"

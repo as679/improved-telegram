@@ -1,0 +1,16 @@
+#cloud-config
+users:
+  - default
+
+write_files:
+  - content: |
+      #!/bin/sh
+      hostnamectl set-hostname --static ${hostname}
+      echo 'preserve_hostname: true' >> /etc/cloud/cloud.cfg
+      register.py ${jump_ip}
+      touch /tmp/cloud-init.done
+    path: /opt/bootstrap.sh
+    permissions: 0755
+
+runcmd:
+  - /opt/bootstrap.sh

@@ -1,4 +1,37 @@
 ---
 - hosts: all
+  gather_facts: false
+  become: true
   tasks:
-  - ping:
+  - apt:
+      name: "{{ item }}"
+    with_items:
+    - redis-server
+    - python-requests
+    - python-boto3
+    - python-redis
+  - copy:
+      src: keys/generated-access-key.pem
+      dest: /home/ubuntu/.ssh/id_rsa
+      owner: ubuntu
+      group: ubuntu
+      mode: '0600'
+  - copy:
+      src: keys/generated-access-key.pem
+      dest: /home/aviadmin/.ssh/id_rsa
+      owner: aviadmin
+      group: aviadmin
+      mode: '0600'
+  - copy:
+      src: provisioning/handle_register.py
+      dest: /usr/local/bin/handle_register.py
+  - copy:
+      src: provisioning/handle_register.service
+      dest: /etc/systemd/system/handle_register.service
+    notify: Start handle_register
+  handlers:
+    - name: Start handle_register
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: handle_register

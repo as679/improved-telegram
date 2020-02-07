@@ -11,11 +11,8 @@ users:
     
 packages:
   - language-pack-en
-  - redis-server
   - python-minimal
-  - python-requests
-  - python-boto3
-  - python-redis
+  - python-apt
 
 write_files:
   - content: |

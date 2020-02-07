@@ -65,24 +65,6 @@ resource "aws_instance" "jump" {
     ]
   }
 
-  provisioner "file" {
-    source      = local.private_key_filename 
-    destination = "/home/ubuntu/.ssh/id_rsa"
-  }
-
-  provisioner "remote-exec" {
-    inline      = [ 
-      "chmod 600 /home/ubuntu/.ssh/id_rsa"
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline      = [ 
-      "sudo cp /home/ubuntu/.ssh/id_rsa /home/aviadmin/.ssh/id_rsa",
-      "sudo chown aviadmin.aviadmin /home/aviadmin/.ssh/id_rsa",
-      "sudo chmod 600 /home/aviadmin/.ssh/id_rsa"
-    ]
-  }
 
   #provisioner "file" {
   #  source      = "provisioning/handle_bootstrap.py"
@@ -131,13 +113,7 @@ resource "aws_instance" "jump" {
   #  ]
   #}
   provisioner "local-exec"{
-    command = "ansible-playbook -i ${aws_instance.jump.public_ip} --private-key ${local.private_key_filename} --user ubuntu provision_jumpbox.yml"
+    command = "ansible-playbook -i '${aws_instance.jump.public_ip},' --private-key ${local.private_key_filename} --user ubuntu provision_jumpbox.yml"
   }
 }
-
-
-
-
-
-
 

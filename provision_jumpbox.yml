@@ -3,13 +3,21 @@
   gather_facts: false
   become: true
   tasks:
+  - apt_repository:
+      repo: ppa:ansible/ansible
   - apt:
-      name: "{{ item }}"
-    with_items:
-    - redis-server
-    - python-requests
-    - python-boto3
-    - python-redis
+      name:
+        - redis-server
+        - python-pip
+        - python-requests
+        - python-boto3
+        - python-redis
+        - ansible
+  - pip:
+      name:
+        - pip
+        - avisdk
+      extra_args: --upgrade
   - copy:
       src: keys/generated-access-key.pem
       dest: /home/ubuntu/.ssh/id_rsa
@@ -34,6 +42,14 @@
       src: provisioning/handle_register.service
       dest: /etc/systemd/system/handle_register.service
     notify: Start handle_register
+  - copy:
+      src: provisioning/ansible_inventory.py
+      dest: /etc/ansible/hosts
+      mode: 0755
+  - replace:
+      path: /etc/ansible/ansible.cfg
+      regexp: '^#(host_key_checking = False)$'
+      replace: '\1'
   handlers:
     - name: Start redis
       systemd:

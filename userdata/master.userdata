@@ -24,7 +24,7 @@ write_files:
       interface=`ip route show | grep default | awk '{print $5}'`
       ip=`ip address show dev $interface | grep 'inet ' | awk '{print $2}' | cut -d/ -f1`
       echo "$ip ${hostname} $host" >> /etc/hosts
-      /opt/register.py ${jump_ip}
+      /opt/register.py ${jumpbox_ip}
       touch /tmp/cloud-init.done
     path: /opt/bootstrap.sh
     permissions: 0755

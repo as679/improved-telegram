@@ -7,7 +7,7 @@ write_files:
       #!/bin/sh
       hostnamectl set-hostname --static ${hostname}
       echo 'preserve_hostname: true' >> /etc/cloud/cloud.cfg
-      register.py ${jump_ip}
+      register.py ${jumpbox_ip}
       touch /tmp/cloud-init.done
     path: /opt/bootstrap.sh
     permissions: 0755

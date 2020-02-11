@@ -5,7 +5,7 @@ data "template_file" "jumpbox_userdata" {
   template = file("${path.module}/userdata/jumpbox.userdata")
 
   vars = {
-    hostname     = "${var.id}_jump"
+    hostname     = "${var.id}_jumpbox"
     server_count = var.student_count
     vpc_id       = aws_vpc.K8S_vpc.id
     region       = var.aws_region
@@ -16,12 +16,12 @@ data "template_file" "jumpbox_userdata" {
   }
 }
 
-resource "aws_instance" "jump" {
+resource "aws_instance" "jumpbox" {
   ami               = var.ami_ubuntu[var.aws_region]
   availability_zone = var.aws_az[var.aws_region]
   instance_type     = var.flavour_ubuntu
   key_name          = aws_key_pair.generated.key_name
-  vpc_security_group_ids      = [aws_security_group.jumpsg.id]
+  vpc_security_group_ids      = [aws_security_group.jumpbox_sg.id]
   subnet_id                   = aws_subnet.pubnet.id
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.lab_profile.name
@@ -65,34 +65,8 @@ resource "aws_instance" "jump" {
     ]
   }
 
-
-  #provisioner "file" {
-  #  source      = "provisioning/handle_bootstrap.py"
-  #  destination = "/usr/local/bin/handle_bootstrap.py"
-  #}
-
-  #provisioner "file" {
-  #  source      = "provisioning/handle_bootstrap.service"
-  #  destination = "/etc/systemd/system/handle_bootstrap.service"
-  #}
-
-  #provisioner "file" {
-  #  source      = "provisioning/create_backup_user.yml"
-  #  destination = "/root/create_backup_user.yml"
-  #}
-
-  #provisioner "file" {
-  #  source      = "provisioning/ansible_inventory.py"
-  #  destination = "/etc/ansible/hosts"
-  #}
-
-  #provisioner "file" {
-  #  source      = "provisioning/cleanup_controllers.py"
-  #  destination = "/usr/local/bin/cleanup_controllers.py"
-  #}
-
   provisioner "local-exec"{
-    command = "ansible-playbook -i '${aws_instance.jump.public_ip},' --private-key ${local.private_key_filename} --user ubuntu provision_jumpbox.yml"
+    command = "ANSIBLE_HOST_KEY_CHECKING=False; ansible-playbook -i '${aws_instance.jump.public_ip},' --private-key ${local.private_key_filename} --user ubuntu provisioning/provision_jumpbox.yml"
   }
 }
 

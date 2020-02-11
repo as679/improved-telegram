@@ -50,12 +50,12 @@ resource "aws_security_group" "ctrlsg" {
   }
 }
 
-resource "aws_security_group" "jumpsg" {
+resource "aws_security_group" "jumpbox_sg" {
   description = "Allow incoming connections to the lab jumpbox."
   vpc_id      = aws_vpc.K8S_vpc.id
 
   tags = {
-    Name = "${var.id}_jumpsg"
+    Name = "${var.id}_jumpbox_sg"
   }
 
   ingress {

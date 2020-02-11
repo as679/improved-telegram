@@ -7,19 +7,19 @@ data "template_file" "jumpbox_userdata" {
   vars = {
     hostname     = "${var.id}_jump"
     server_count = var.student_count
-    vpc_id       = aws_vpc.OCP_vpc.id
+    vpc_id       = aws_vpc.K8S_vpc.id
     region       = var.aws_region
     az           = var.aws_az[var.aws_region]
     mgmt_net     = aws_subnet.mgmtnet.tags.Name
-    pkey         = var.pkey
+    pkey         = tls_private_key.generated.private_key_pem
     pubkey       = tls_private_key.generated.public_key_openssh
   }
 }
 
 resource "aws_instance" "jump" {
-  ami               = var.ami_centos[var.aws_region]
+  ami               = var.ami_ubuntu[var.aws_region]
   availability_zone = var.aws_az[var.aws_region]
-  instance_type     = var.flavour_centos
+  instance_type     = var.flavour_ubuntu
   key_name          = aws_key_pair.generated.key_name
   vpc_security_group_ids      = [aws_security_group.jumpsg.id]
   subnet_id                   = aws_subnet.pubnet.id
@@ -34,7 +34,7 @@ resource "aws_instance" "jump" {
     Owner                         = var.owner
     Lab_Group                     = "jumpbox"
     Lab_Name                      = "jumpbox.student.lab"
-    Lab_vpc_id                    = aws_vpc.OCP_vpc.id
+    Lab_vpc_id                    = aws_vpc.K8S_vpc.id
     Lab_avi_default_password      = var.avi_default_password
     Lab_avi_admin_password        = var.avi_admin_password
     Lab_avi_backup_admin_username = var.avi_backup_admin_username
@@ -47,7 +47,7 @@ resource "aws_instance" "jump" {
 
   root_block_device {
     volume_type           = "standard"
-    volume_size           = var.vol_size_centos
+    volume_size           = var.vol_size_ubuntu
     delete_on_termination = "true"
   }
 

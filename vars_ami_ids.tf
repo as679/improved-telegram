@@ -15,7 +15,7 @@ variable "ami_ubuntu" {
   description = "Ubuntu Xenial AMI by region updated 10/10/18"
 
   default = {
-    eu-west-1 = "ami-0f630a3f40b1eb0b8"
+    eu-west-1 = "ami-07042e91d04b1c30d" #Bionic
     us-west-2 = "ami-02d0ea44ae3fe9561"
   }
 }

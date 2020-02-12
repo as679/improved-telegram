@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import requests
 import boto3
 import redis
@@ -11,7 +11,7 @@ class identity(object):
             identity = self._get_url(url)
         else:
             identity = document
-        for k, v in identity.iteritems():
+        for k, v in identity.items():
                 setattr(self, k, v)
 
     def _get_url(self, url):
@@ -66,7 +66,9 @@ class hosts_file(object):
             hosts[hostname] = ip_address
         with open(filename, 'w') as fh:
             for k in hosts.keys():
-                print >> fh, '%s\t%s' % (hosts[k], k)
+                if isinstance(k, bytes):
+                    k = k.decode()
+                print('%s\t%s' % (hosts[k], k), file=fh)
 
 
 class update_redis(object):
@@ -92,8 +94,8 @@ if __name__ == '__main__':
     p.subscribe('instances')
     for m in p.listen():
         if m['type'] == 'message':
-            data = json.loads(m['data'])
-            id = data.keys()[0]
+            data = json.loads(m['data'].decode('utf-8'))
+            id = list(data.keys())[0]
             tags = instance_tags(document=data[id])
             hosts_file(tags.identity.privateIp, tags.identity.Lab_Name)
             if data[id]['public-ipv4']:

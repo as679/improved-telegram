@@ -8,15 +8,15 @@
   - apt:
       name:
         - redis-server
-        - python-pip
-        - python-requests
-        - python-boto3
-        - python-redis
+        - python3-pip
+        - python3-redis
         - ansible
   - pip:
       name:
         - pip
         - avisdk
+        - boto3
+        - ansible-runner
       extra_args: --upgrade
   - copy:
       src: keys/generated-access-key.pem
@@ -33,7 +33,12 @@
   - lineinfile:
       dest: /etc/redis/redis.conf
       state: absent
-      regexp: '^bind 127.0.0.1$'
+      regexp: '^bind 127.0.0.1 ::1$'
+    notify: Start redis
+  - replace:
+      dest: /etc/redis/redis.conf
+      regexp: '^(protected-mode) yes$'
+      replace: '\1 no'
     notify: Start redis
   - copy:
       src: provisioning/handle_register.py
@@ -42,6 +47,13 @@
       src: provisioning/handle_register.service
       dest: /etc/systemd/system/handle_register.service
     notify: Start handle_register
+  - copy:
+      src: provisioning/handle_bootstrap.py
+      dest: /usr/local/bin/handle_bootstrap.py
+  - copy:
+      src: provisioning/handle_bootstrap.service
+      dest: /etc/systemd/system/handle_bootstrap.service
+    notify: Start handle_bootstrap
   - copy:
       src: provisioning/ansible_inventory.py
       dest: /etc/ansible/hosts
@@ -61,3 +73,8 @@
         state: restarted
         daemon_reload: yes
         name: handle_register
+    - name: Start handle_bootstrap
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: handle_bootstrap

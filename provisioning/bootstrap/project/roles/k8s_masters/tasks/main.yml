@@ -1,0 +1,25 @@
+---
+- apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+- apt:
+    name:
+      - docker.io
+      - kubelet
+      - kubeadm
+      - kubectl
+- copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+- file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+- systemd:
+    name: docker
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+- service:
+    name: kubelet
+    state: started
+    enabled: true

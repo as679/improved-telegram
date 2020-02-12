@@ -17,3 +17,7 @@
 - hosts: jumpbox
   roles:
   - jumpbox
+
+- hosts: k8s_masters
+  roles:
+  - k8s_masters

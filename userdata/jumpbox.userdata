@@ -11,8 +11,6 @@ users:
     
 packages:
   - language-pack-en
-  - python-minimal
-  - python-apt
 
 write_files:
   - content: |

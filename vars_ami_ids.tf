@@ -23,7 +23,8 @@ variable "ami_centos" {
 
   default = {
     #eu-west-1 = "ami-0defbd4ca292ce6e5"
-    eu-west-1 = "ami-0f630a3f40b1eb0b8"
+    #eu-west-1 = "ami-0f630a3f40b1eb0b8" #Xenial
+    eu-west-1 = "ami-07042e91d04b1c30d" #Bionic
     us-west-2 = "ami-01161bd085729d109"
   }
 }

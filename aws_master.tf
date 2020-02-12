@@ -7,7 +7,7 @@ data "template_file" "master_userdata" {
 
   vars = {
     hostname = "master${floor(count.index / var.student_count % var.master_count + 1)}.student${count.index % var.student_count + 1}.lab"
-    jump_ip  = aws_instance.jump.private_ip
+    jumpbox_ip  = aws_instance.jumpbox.private_ip
     pubkey       = tls_private_key.generated.public_key_openssh
     number   = count.index + 1
   }
@@ -15,18 +15,18 @@ data "template_file" "master_userdata" {
 
 resource "aws_instance" "master" {
   count                       = var.master_count * var.student_count
-  ami                         = var.ami_centos[var.aws_region]
+  ami                         = var.ami_ubuntu[var.aws_region]
   availability_zone           = var.aws_az[var.aws_region]
   instance_type               = var.flavour_master
   key_name                    = aws_key_pair.generated.key_name
-  vpc_security_group_ids      = [aws_security_group.jumpsg.id]
+  vpc_security_group_ids      = [aws_security_group.jumpbox_sg.id]
   subnet_id                   = aws_subnet.pubnet.id
   associate_public_ip_address = true
 
   #private_ip             = "${format("%s%02d", cidrhost(aws_subnet.privnet.cidr_block,1) , count.index + 1)}"
   source_dest_check = false
   user_data         = data.template_file.master_userdata[count.index].rendered
-  depends_on        = [aws_instance.jump]
+  depends_on        = [aws_instance.jumpbox]
 
   tags = {
     Name         = "master${floor(count.index / var.student_count % var.master_count + 1)}.student${count.index % var.student_count + 1}.lab"
@@ -38,7 +38,7 @@ resource "aws_instance" "master" {
 
   root_block_device {
     volume_type           = "standard"
-    volume_size           = var.vol_size_centos
+    volume_size           = var.vol_size_ubuntu
     delete_on_termination = "true"
   }
 }

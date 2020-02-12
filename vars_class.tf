@@ -13,9 +13,6 @@ variable "aws_secret_key" {
 variable "aws_region" {
 }
 
-variable "pkey" {
-}
-
 variable "avi_default_password" {
 }
 

@@ -8,25 +8,25 @@ variable "vpc_cidr" {
 
 variable "flavour_master" {
   description = "AWS instance type for servers etc"
-  default     = "t3.xlarge"
+  default     = "t2.xlarge"
 }
 
 variable "flavour_server" {
   description = "AWS instance type for servers etc"
-  default     = "t3.large"
+  default     = "t2.large"
 }
 
-variable "flavour_centos" {
+variable "flavour_ubuntu" {
   description = "AWS instance type for servers etc"
-  default     = "t3.medium"
+  default     = "t2.medium"
 }
 
 variable "flavour_avi" {
   description = "AWS instance type for Avi controllers"
-  default     = "t3.2xlarge"
+  default     = "c5n.2xlarge"
 }
 
-variable "vol_size_centos" {
+variable "vol_size_ubuntu" {
   description = "Volume size for instances in G"
   default     = "60"
 }

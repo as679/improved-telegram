@@ -1,12 +1,12 @@
 # Outputs for Terraform
 #
 
-output "JumpHost_PublicIP" {
-  value = aws_instance.jump.public_ip
+output "Jumpbox_PublicIP" {
+  value = aws_instance.jumpbox.public_ip
 }
 
-output "JumpHost_PrivateIP" {
-  value = aws_instance.jump.private_ip
+output "Jumpbox_PrivateIP" {
+  value = aws_instance.jumpbox.private_ip
 }
 
 #output "Controller_PublicIP" {

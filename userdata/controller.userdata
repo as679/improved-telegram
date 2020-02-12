@@ -6,7 +6,7 @@ users:
   - default
 
 bootcmd:
-  - wget -O /tmp/register.py http://${jump_ip}/register.py
+  - wget -O /tmp/register.py http://${jumpbox_ip}/register.py
   - chmod +x /tmp/register.py
   - hostname ${hostname}
-  - /tmp/register.py ${jump_ip}
+  - /tmp/register.py ${jumpbox_ip}

@@ -17,27 +17,13 @@ locals {
 }
 
 resource "local_file" "public_key_openssh" {
-  #count    = "./keys/" != "" ? 1 : 0
   content  = tls_private_key.generated.public_key_openssh
   filename = local.public_key_filename
+  file_permission      = "0700"
 }
 
 resource "local_file" "private_key_pem" {
-  #count    = "./keys/" != "" ? 1 : 0
   content  = tls_private_key.generated.private_key_pem
   filename = local.private_key_filename
+  file_permission      = "0700"
 }
-
-resource "null_resource" "chmod" {
-  #count      = "./keys/" != "" ? 1 : 0
-  depends_on = [local_file.private_key_pem]
-
-  triggers = {
-    key = tls_private_key.generated.private_key_pem
-  }
-
-  provisioner "local-exec" {
-    command = "chmod 600 ${local.private_key_filename}"
-  }
-}
-

@@ -12,10 +12,10 @@ variable "ami_avi_controller" {
 
 variable "ami_ubuntu" {
   type        = map(string)
-  description = "Ubuntu Xenial AMI by region updated 10/10/18"
+  description = "Ubuntu Bionic Beaver AMI by region updated 10/10/18"
 
   default = {
-    eu-west-1 = "ami-07042e91d04b1c30d" #Bionic
-    us-west-2 = "ami-02d0ea44ae3fe9561"
+    eu-west-1 = "ami-07042e91d04b1c30d" 
+    us-west-2 = "ami-0edf3b95e26a682df"
   }
 }

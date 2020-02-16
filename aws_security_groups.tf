@@ -6,12 +6,12 @@
 # All outbound traffic is allowed
 # All local traffic is allowed
 
-resource "aws_security_group" "ctrlsg" {
+resource "aws_security_group" "ctrl_sg" {
   description = "Allow incoming connections to the Avi GUI"
   vpc_id      = aws_vpc.K8S_vpc.id
 
   tags = {
-    Name = "${var.id}_ctrlsg"
+    Name = "${var.id}_ctrl_sg"
   }
 
   ingress {

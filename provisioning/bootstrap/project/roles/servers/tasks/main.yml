@@ -1,72 +1,52 @@
 ---
-- lineinfile:
-    dest: /etc/resolv.conf
-    insertbefore: BOF
-    line: nameserver {{ hostvars['jumpbox.student.lab']['privateIp'] }}
-- lineinfile:
-    dest: /etc/yum.conf
-    regexp: ''
-    insertafter: EOF
-    line: proxy=http://{{ hostvars['jumpbox.student.lab']['privateIp'] }}:3128
-- command: subscription-manager config --server.proxy_hostname={{ hostvars['jumpbox.student.lab']['privateIp'] }} --server.proxy_port=3128
-#- command: subscription-manager register --force --org={{ hostvars['jumpbox.student.lab']['Lab_ocp_rhsm_org'] }} --activationkey={{ hostvars['jumpbox.student.lab']['Lab_ocp_rhsm_activationkey'] }}
-- command: subscription-manager register --force --username={{ hostvars['jumpbox.student.lab']['Lab_ocp_oreg_auth_user'] }} --password={{ hostvars['jumpbox.student.lab']['Lab_ocp_oreg_auth_password'] }}
-  ignore_errors: true
-- command: subscription-manager attach --pool={{ hostvars['jumpbox.student.lab']['Lab_ocp_rhsm_pool_id'] }}
-  ignore_errors: true
-- lineinfile:
-    dest: /etc/rhsm/rhsm.conf
-    regexp: "{{ item.regexp }}"
-    insertafter: EOF
-    line: "{{ item.line }}"
-  loop:
-  - { regexp: '^proxy_hostname', line: "proxy_hostname={{ hostvars['jumpbox.student.lab']['privateIp'] }}" }
-  - { regexp: '^proxy_port', line: 'proxy_port=3128' }
-- command: subscription-manager repos --enable={{ item }}
-  loop:
-  - rhel-7-server-rpms
-  - rhel-7-server-extras-rpms
-  - rhel-7-server-ose-3.11-rpms
-  - rhel-7-server-ansible-2.6-rpms
-  - rhel-7-fast-datapath-rpms
-  ignore_errors: true
-- yum:
-    name: "{{ item }}"
-    state: present
-  with_items:
-  - bind-utils
-  - vim
-  - tmux
-  - wget
-  - net-tools
-  - yum-utils
-  - iptables-services
-  - bridge-utils
-  - bash-completion
-  - kexec-tools
-  - sos
-  - psacct
-  - openshift-ansible
-  - atomic
 - file:
-    path: /opt/bootstrap/openshift-ansible
-    state: directory
-  when:
-  - inventory_hostname is search("master1")
-- lineinfile:
-    dest: /opt/bootstrap/openshift-ansible/dnsmasq-snippet.conf
-    insertafter: EOF
-    create: yes
-    line: server=/lab/{{ hostvars['jumpbox.student.lab']['privateIp'] }}
-  when:
-  - inventory_hostname is search("master1")
+    path: /etc/resolv.conf
+    state: absent
 - template:
-    src: ocp_inventory.j2
-    dest: /opt/bootstrap/openshift-ansible/ocp_inventory_{{ hostvars[item]['student_domain'] }}
-    owner: root
-    group: wheel
-    mode: 0644
-  when:
-  - hostvars[item]['Lab_Group'] == "controllers"
-  - inventory_hostname is search("master1")
-  with_inventory_hostnames: all
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+- set_fact:
+    k8s_master: "{{ ['master1', inventory_hostname.split('.')[-2:] | join('.')] | join('.') }}"
+- wait_for:
+    host: "{{ k8s_master }}"
+    port: 6443
+    delay: 10
+- shell: kubeadm config view
+  register: kubeadm_config
+  ignore_errors: yes
+  changed_when: "kubeadm_config.rc != 0"
+- block:
+  - apt_key:
+      url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+      id: "0x6A030B21BA07F4FB"
+  - apt_repository:
+      repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+      state: present
+  - apt:
+      name:
+        - docker.io
+        - kubelet
+        - kubeadm
+        - kubectl
+  - copy:
+      src: daemon.json
+      dest: /etc/docker/daemon.json
+  - file:
+      path: /etc/systemd/system/docker.service.d
+      state: directory
+  - systemd:
+      name: docker
+      state: restarted
+      enabled: yes
+      daemon_reload: yes
+  - user:
+      name: aviadmin
+      groups: docker
+  - service:
+      name: kubelet
+      state: started
+      enabled: true
+  - meta: refresh_inventory
+  - shell: "kubeadm join --token {{ hostvars[k8s_master].kubeadm_token }} {{ k8s_master }}:6443 --discovery-token-ca-cert-hash sha256:{{ hostvars[k8s_master].kubeadm_hash }}"
+    register: kubeadm_join
+  when: kubeadm_config.rc > 0

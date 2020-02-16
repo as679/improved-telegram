@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import argparse
 import json
 import redis
 
 class inventory(object):
     def __init__(self):
-        self.redis = redis.StrictRedis(host='localhost', port=6379, db=0)
+        self.redis = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
         self.inventory = {'_meta': {'hostvars': {}}}
         self.redis_instances()
 
@@ -34,6 +34,6 @@ if __name__ == '__main__':
 
     inv = inventory()
     if args.list:
-        print inv()
+        print(inv())
     elif args.host:
-        print inv.host(args.host)
+        print(inv.host(args.host))

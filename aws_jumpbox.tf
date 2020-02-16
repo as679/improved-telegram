@@ -5,7 +5,7 @@ data "template_file" "jumpbox_userdata" {
   template = file("${path.module}/userdata/jumpbox.userdata")
 
   vars = {
-    hostname     = "${var.id}_jumpbox"
+    hostname     = "jumpbox.student.lab"
     server_count = var.student_count
     vpc_id       = aws_vpc.K8S_vpc.id
     region       = var.aws_region
@@ -30,7 +30,7 @@ resource "aws_instance" "jumpbox" {
   depends_on                  = [aws_internet_gateway.igw]
 
   tags = {
-    Name                          = "${var.id}_jumpbox"
+    Name                          = "jumpbox.student.lab"
     Owner                         = var.owner
     Lab_Group                     = "jumpbox"
     Lab_Name                      = "jumpbox.student.lab"
@@ -66,7 +66,7 @@ resource "aws_instance" "jumpbox" {
   }
 
   provisioner "local-exec"{
-    command = "ANSIBLE_HOST_KEY_CHECKING=False; ansible-playbook -i '${aws_instance.jumpbox.public_ip},' --private-key ${local.private_key_filename} --user ubuntu provisioning/provision_jumpbox.yml"
+    command = "ansible-playbook -i '${aws_instance.jumpbox.public_ip},' --private-key ${local.private_key_filename} --user ubuntu provisioning/provision_jumpbox.yml"
   }
 }
 

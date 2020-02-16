@@ -3,6 +3,9 @@ import requests
 import boto3
 import redis
 import json
+import psutil
+import os
+import signal
 
 
 class identity(object):
@@ -12,7 +15,10 @@ class identity(object):
         else:
             identity = document
         for k, v in identity.items():
+            if isinstance(k, str):
                 setattr(self, k, v)
+            else:
+                setattr(self, k.decode('utf-8'), v)
 
     def _get_url(self, url):
         response = requests.get(url)
@@ -69,6 +75,10 @@ class hosts_file(object):
                 if isinstance(k, bytes):
                     k = k.decode()
                 print('%s\t%s' % (hosts[k], k), file=fh)
+        for pid in psutil.process_iter(['pid', 'name']):
+            if pid.info['name'] == "dnsmasq":
+                os.kill(pid.info['pid'], signal.SIGHUP)
+                break
 
 
 class update_redis(object):

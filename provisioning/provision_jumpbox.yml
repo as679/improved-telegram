@@ -8,9 +8,11 @@
   - apt:
       name:
         - redis-server
+        - python-psutil
         - python3-pip
         - python3-redis
         - ansible
+        - dnsmasq
   - pip:
       name:
         - pip
@@ -18,63 +20,99 @@
         - boto3
         - ansible-runner
       extra_args: --upgrade
-  - copy:
-      src: keys/generated-access-key.pem
-      dest: /home/ubuntu/.ssh/id_rsa
-      owner: ubuntu
-      group: ubuntu
+  - file:
+      name: /usr/bin/python
+      state: absent
+  - file:
+      dest: /usr/bin/python
+      src: /usr/bin/python3.6
+      state: link
+  - file:
+      path: /root/.ssh
+      state: directory
       mode: '0600'
   - copy:
-      src: keys/generated-access-key.pem
-      dest: /home/aviadmin/.ssh/id_rsa
-      owner: aviadmin
-      group: aviadmin
+      src: ../keys/generated-access-key.pem
+      dest: "/home/{{ item }}/.ssh/id_rsa"
+      owner: "{{ item }}"
+      group: "{{ item }}"
+      mode: '0600'
+    loop:
+      - ubuntu
+      - aviadmin
+  - copy:
+      src: ../keys/generated-access-key.pem
+      dest: /root/.ssh/id_rsa
+      owner: root
+      group: root
       mode: '0600'
   - lineinfile:
       dest: /etc/redis/redis.conf
       state: absent
       regexp: '^bind 127.0.0.1 ::1$'
-    notify: Start redis
   - replace:
       dest: /etc/redis/redis.conf
       regexp: '^(protected-mode) yes$'
       replace: '\1 no'
-    notify: Start redis
+  - systemd:
+      name: redis
+      state: restarted
   - copy:
-      src: provisioning/handle_register.py
+      src: ../provisioning/handle_register.py
       dest: /usr/local/bin/handle_register.py
   - copy:
-      src: provisioning/handle_register.service
+      src: ../provisioning/handle_register.service
       dest: /etc/systemd/system/handle_register.service
-    notify: Start handle_register
+  - systemd:
+      state: restarted
+      daemon_reload: yes
+      name: handle_register
   - copy:
-      src: provisioning/handle_bootstrap.py
+      src: ../provisioning/handle_bootstrap.py
       dest: /usr/local/bin/handle_bootstrap.py
   - copy:
-      src: provisioning/handle_bootstrap.service
+      src: ../provisioning/handle_bootstrap.service
       dest: /etc/systemd/system/handle_bootstrap.service
-    notify: Start handle_bootstrap
+  - systemd:
+      state: restarted
+      daemon_reload: yes
+      name: handle_bootstrap
   - copy:
-      src: provisioning/ansible_inventory.py
+      src: ../provisioning/ansible_inventory.py
       dest: /etc/ansible/hosts
       mode: 0755
   - replace:
       path: /etc/ansible/ansible.cfg
       regexp: '^#(host_key_checking = False)$'
       replace: '\1'
-  handlers:
-    - name: Start redis
-      systemd:
-        state: restarted
-        daemon_reload: yes
-        name: redis
-    - name: Start handle_register
-      systemd:
-        state: restarted
-        daemon_reload: yes
-        name: handle_register
-    - name: Start handle_bootstrap
-      systemd:
-        state: restarted
-        daemon_reload: yes
-        name: handle_bootstrap
+  - file:
+      path: /opt/bootstrap
+      state: directory
+      group: ubuntu
+      mode: '0775'
+  - copy:
+      src: ../provisioning/bootstrap/
+      dest: /opt/bootstrap/
+  - replace:
+      path: /etc/dnsmasq.conf
+      regexp: "{{ item.regexp }}"
+      replace: "{{ item.replace }}"
+    loop:
+      - { regexp: '^#(no-resolv)$', replace: '\1' }
+      - { regexp: '^#(server)=/localnet/192.168.0.1$', replace: '\1=8.8.8.8' }
+      - { regexp: '^#(local)=/localnet/$', replace: '\1=/lab/' }
+  - systemd:
+      state: restarted
+      name: dnsmasq
+  - systemd:
+      name: systemd-resolved
+      state: stopped
+      enabled: no
+  - file:
+      path: /etc/resolv.conf
+      state: absent
+  - copy:
+      src: ../provisioning/resolv.conf
+      dest: /etc/resolv.conf
+  - shell: /usr/local/bin/register.py 127.0.0.1
+    register: register

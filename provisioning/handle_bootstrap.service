@@ -5,8 +5,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=root
-Group=root
+User=ubuntu
+Group=ubuntu
 ExecStart=/usr/bin/python3 /usr/local/bin/handle_bootstrap.py --project bootstrap --debug
 
 # Give the script some time to startup

@@ -1,25 +1,65 @@
 ---
-- apt_repository:
-    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
-    state: present
-- apt:
-    name:
-      - docker.io
-      - kubelet
-      - kubeadm
-      - kubectl
-- copy:
-    src: daemon.json
-    dest: /etc/docker/daemon.json
 - file:
-    path: /etc/systemd/system/docker.service.d
-    state: directory
-- systemd:
-    name: docker
-    state: restarted
-    enabled: yes
-    daemon_reload: yes
-- service:
-    name: kubelet
-    state: started
-    enabled: true
+    path: /etc/resolv.conf
+    state: absent
+- template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+- shell: kubeadm config view
+  register: kubeadm_config
+  ignore_errors: yes
+  changed_when: "kubeadm_config.rc != 0"
+- block:
+  - apt_key:
+      url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+      id: "0x6A030B21BA07F4FB"
+  - apt_repository:
+      repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+      state: present
+  - apt:
+      name:
+        - docker.io
+        - kubelet
+        - kubeadm
+        - kubectl
+        - redis-tools
+  - copy:
+      src: daemon.json
+      dest: /etc/docker/daemon.json
+  - file:
+      path: /etc/systemd/system/docker.service.d
+      state: directory
+  - systemd:
+      name: docker
+      state: restarted
+      enabled: yes
+      daemon_reload: yes
+  - user:
+      name: aviadmin
+      groups: docker
+  - service:
+      name: kubelet
+      state: started
+      enabled: true
+  - shell: kubeadm init --pod-network-cidr=10.244.0.0/16
+    register: kubeadm_init
+  - file:
+      path: /home/aviadmin/.kube
+      state: directory
+  - copy:
+      remote_src: yes
+      src: /etc/kubernetes/admin.conf
+      dest: /home/aviadmin/.kube/config
+      owner: aviadmin
+      group: aviadmin
+  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+    register: kubeadm_network
+  - shell: kubeadm token list | grep authentication | cut -d' ' -f1
+    register: kubeadm_token
+  - shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+    register: kubeadm_hash
+  - shell: "redis-cli -h jumpbox.student.lab hset {{ inventory_hostname }} kubeadm_token {{ kubeadm_token.stdout }}"
+    register: redis_kubeadm_token
+  - shell: "redis-cli -h jumpbox.student.lab hset {{ inventory_hostname }} kubeadm_hash {{ kubeadm_hash.stdout }}"
+    register: redis_kubeadm_hash
+  when: kubeadm_config.rc > 0

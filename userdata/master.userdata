@@ -11,9 +11,9 @@ users:
 
 packages:
   - language-pack-en
-  - python-minimal
-  - python-requests
-  - python-redis
+#  - python-minimal
+#  - python3-requests
+  - python3-redis
 
 write_files:
   - content: |
@@ -28,10 +28,41 @@ write_files:
       touch /tmp/cloud-init.done
     path: /opt/bootstrap.sh
     permissions: 0755
-  - content: IyEvdXNyL2Jpbi9lbnYgcHl0aG9uCmltcG9ydCByZXF1ZXN0cwppbXBvcnQgZGF0ZXRpbWUKaW1wb3J0IGpzb24KaW1wb3J0IHN5cwppbXBvcnQgcmVkaXMKaW1wb3J0IG9zCgoKZGVmIHRvdWNoKGZuYW1lKToKICAgIHdpdGggb3BlbihmbmFtZSwgJ2EnKToKICAgICAgICBvcy51dGltZShmbmFtZSwgTm9uZSkKCgpkZWYgZ2V0X3VybCh1cmwpOgogICAgcmVzcG9uc2UgPSByZXF1ZXN0cy5nZXQodXJsKQogICAgdHJ5OgogICAgICAgIHJlc3BvbnNlLnJhaXNlX2Zvcl9zdGF0dXMoKQogICAgZXhjZXB0OgogICAgICAgIHJldHVybiBOb25lCiAgICB0cnk6CiAgICAgICAgcmV0dXJuIHJlc3BvbnNlLmpzb24oKQogICAgZXhjZXB0IFZhbHVlRXJyb3I6CiAgICAgICAgcmV0dXJuIHJlc3BvbnNlLnRleHQKCgpibG9ja2VyX2ZuYW1lID0gIi9vcHQvcmVnaXN0ZXJfYmxvY2tlciIKCmV4aXN0cyA9IG9zLnBhdGguaXNmaWxlKGJsb2NrZXJfZm5hbWUpCmlmIG5vdCBleGlzdHM6CiAgICByZWRpc19ob3N0ID0gc3lzLmFyZ3ZbMV0KICAgIGlkZW50aXR5ID0gZ2V0X3VybCgnaHR0cDovLzE2OS4yNTQuMTY5LjI1NC9sYXRlc3QvZHluYW1pYy9pbnN0YW5jZS1pZGVudGl0eS9kb2N1bWVudCcpCiAgICBpZGVudGl0eVsncHVibGljLWlwdjQnXSA9IGdldF91cmwoJ2h0dHA6Ly8xNjkuMjU0LjE2OS4yNTQvbGF0ZXN0L21ldGEtZGF0YS9wdWJsaWMtaXB2NCcpCiAgICBpZGVudGl0eVsnbm93J10gPSBkYXRldGltZS5kYXRldGltZS5ub3coKS5pc29mb3JtYXQoKQogICAgaWRlbnRpdHlbJ2xvY2FsaG9zdG5hbWUnXSA9IG9zLnVuYW1lKClbMV0KICAgIHJlcG9ydCA9IHsgaWRlbnRpdHlbJ2luc3RhbmNlSWQnXTogaWRlbnRpdHkgfQogICAgciA9IHJlZGlzLmNsaWVudC5TdHJpY3RSZWRpcyhob3N0PXJlZGlzX2hvc3QsIHBvcnQ9NjM3OSwgZGI9MCkKICAgIHIucHVibGlzaCgnaW5zdGFuY2VzJywganNvbi5kdW1wcyhyZXBvcnQpKQogICAgdG91Y2goYmxvY2tlcl9mbmFtZSkK
+  - content: |
+      #!/usr/bin/env python3
+      import requests
+      import datetime
+      import json
+      import sys
+      import redis
+      import os
+      def touch(fname):
+          with open(fname, 'a'):
+              os.utime(fname, None)
+      def get_url(url):
+          response = requests.get(url)
+          try:
+              response.raise_for_status()
+          except:
+              return None
+          try:
+              return response.json()
+          except ValueError:
+              return response.text
+      blocker_fname = "/opt/register_blocker"
+      exists = os.path.isfile(blocker_fname)
+      if not exists:
+          redis_host = sys.argv[1]
+          identity = get_url('http://169.254.169.254/latest/dynamic/instance-identity/document')
+          identity['public-ipv4'] = get_url('http://169.254.169.254/latest/meta-data/public-ipv4')
+          identity['now'] = datetime.datetime.now().isoformat()
+          identity['localhostname'] = os.uname()[1]
+          report = { identity['instanceId']: identity }
+          r = redis.client.StrictRedis(host=redis_host, port=6379, db=0)
+          r.publish('instances', json.dumps(report))
+          touch(blocker_fname)
     path: /opt/register.py
     permissions: 0755
-    encoding: b64
 
 runcmd:
   - /opt/bootstrap.sh

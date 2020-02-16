@@ -7,17 +7,19 @@
       password: "{{ hostvars['jumpbox.student.lab']['Lab_avi_default_password'] }}"
 
   roles:
-    - avinetworks.avisdk
     - controllers
 
 - hosts: servers
+  become: yes
   roles:
   - servers
 
 - hosts: jumpbox
+  become: yes
   roles:
   - jumpbox
 
 - hosts: k8s_masters
+  become: yes
   roles:
   - k8s_masters

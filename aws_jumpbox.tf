@@ -66,7 +66,7 @@ resource "aws_instance" "jumpbox" {
   }
 
   provisioner "local-exec"{
-    command = "ansible-playbook -i '${aws_instance.jumpbox.public_ip},' --private-key ${local.private_key_filename} --user ubuntu provisioning/provision_jumpbox.yml"
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i '${aws_instance.jumpbox.public_ip},' --private-key ${local.private_key_filename} --user ubuntu provisioning/provision_jumpbox.yml"
   }
 }
 

@@ -20,10 +20,8 @@ resource "aws_instance" "master" {
   instance_type               = var.flavour_master
   key_name                    = aws_key_pair.generated.key_name
   vpc_security_group_ids      = [aws_security_group.jumpbox_sg.id]
-  subnet_id                   = aws_subnet.pubnet.id
+  subnet_id                   = aws_subnet.infranet.id
   associate_public_ip_address = true
-
-  #private_ip             = "${format("%s%02d", cidrhost(aws_subnet.privnet.cidr_block,1) , count.index + 1)}"
   source_dest_check = false
   user_data         = data.template_file.master_userdata[count.index].rendered
   depends_on        = [aws_instance.jumpbox]

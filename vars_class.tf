@@ -32,6 +32,7 @@ variable "student_count" {
 
 variable "lab_timezone" {
   description = "Lab Timezone: PST, EST, GMT or SGT"
+  default = "EST"
 }
 
 variable "server_count" {
@@ -62,11 +63,6 @@ variable "aws_az" {
     us-west-2 = "us-west-2a"
     eu-west-1 = "eu-west-1a"
   }
-}
-
-variable "key" {
-  description = "AWS SSH keypair name"
-  default     = "training-access"
 }
 
 variable "generated_key_name" {

@@ -20,7 +20,7 @@ resource "aws_instance" "server" {
   instance_type          = var.flavour_server
   key_name               = aws_key_pair.generated.key_name
   vpc_security_group_ids = [aws_security_group.jumpbox_sg.id]
-  subnet_id              = aws_subnet.pubnet.id
+  subnet_id              = aws_subnet.appnet.id
   associate_public_ip_address = true
 
   #  private_ip             = format("%s%02d", var.base_ip, count.index + 1)

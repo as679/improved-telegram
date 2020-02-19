@@ -13,6 +13,7 @@
         - python3-redis
         - ansible
         - dnsmasq
+        - nginx
   - pip:
       name:
         - pip
@@ -56,6 +57,9 @@
       replace: '\1 no'
   - systemd:
       name: redis
+      state: restarted
+  - systemd:
+      name: nginx
       state: restarted
   - copy:
       src: ../provisioning/handle_register.py
@@ -114,5 +118,13 @@
   - copy:
       src: ../provisioning/resolv.conf
       dest: /etc/resolv.conf
+  - copy:
+      src: ../provisioning/register.py
+      dest: /usr/local/bin/register.py
+      mode: 0755
+  - copy:
+      src: ../provisioning/register.py
+      dest: /var/www/html/register.py
+      mode: 0755
   - shell: /usr/local/bin/register.py 127.0.0.1
     register: register

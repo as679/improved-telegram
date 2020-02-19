@@ -22,7 +22,7 @@ resource "aws_instance" "jumpbox" {
   instance_type     = var.flavour_ubuntu
   key_name          = aws_key_pair.generated.key_name
   vpc_security_group_ids      = [aws_security_group.jumpbox_sg.id]
-  subnet_id                   = aws_subnet.pubnet.id
+  subnet_id                   = aws_subnet.infranet.id
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.lab_profile.name
   source_dest_check           = false

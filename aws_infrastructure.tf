@@ -31,13 +31,13 @@ resource "aws_subnet" "appnet" {
   }
 }
 
-resource "aws_subnet" "mgmtnet" {
+resource "aws_subnet" "managementnet" {
   vpc_id            = aws_vpc.K8S_vpc.id
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, 2)
   availability_zone = var.aws_az[var.aws_region]
 
   tags = {
-    Name  = "${var.id}_mgmt_net"
+    Name  = "${var.id}_management_net"
     Owner = var.owner
   }
 }

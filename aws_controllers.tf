@@ -16,11 +16,11 @@ resource "aws_instance" "ctrl" {
   ami                         = var.ami_avi_controller[var.aws_region]
   availability_zone           = var.aws_az[var.aws_region]
   instance_type               = var.flavour_avi
-  key_name                    = aws_key_pair.generated.key_name 
+  key_name                    = aws_key_pair.generated.key_name
   vpc_security_group_ids      = [aws_security_group.ctrl_sg.id]
   subnet_id                   = aws_subnet.infranet.id
   associate_public_ip_address = true
-  iam_instance_profile        = aws_iam_instance_profile.lab_profile.name
+  iam_instance_profile        = aws_iam_instance_profile.controller_iam_profile.name
   source_dest_check           = false
   user_data                   = data.template_file.controller_userdata[count.index].rendered
   depends_on                  = [aws_instance.server]
@@ -40,4 +40,3 @@ resource "aws_instance" "ctrl" {
     delete_on_termination = "true"
   }
 }
-

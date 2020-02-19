@@ -34,6 +34,7 @@
 - name: Basic system configuration
   avi_systemconfiguration:
     avi_credentials: "{{ avi_credentials }}"
+    welcome_workflow_complete: true
     dns_configuration:
       server_list:
         - addr: "{{ hostvars['jumpbox.student.lab']['privateIp'] }}"
@@ -120,34 +121,6 @@
             - port: 53
               override_network_profile_ref: '/api/networkprofile/?name=System-TCP-Proxy'
           vsvip_ref: '/api/vsvip?name=vsvip_dns'
-- name: Define App Virtual Service
-  import_role:
-    name: avinetworks.aviconfig
-  vars:
-    avi_credentials: "{{ avi_credentials }}"
-    avi_config:
-      pool:
-        - name: app_pool
-          cloud_ref: '/api/cloud?name=AWS'
-          default_server_port: 80
-          servers: '{{ app_pool_servers }}'
-          health_monitor_refs:
-            - '/api/healthmonitor?name=System-HTTP'
-      vsvip:
-        - name: vsvip_app
-          cloud_ref: '/api/cloud?name=AWS'
-          vip:
-            - auto_allocate_ip: true
-              subnet_uuid: "{{ subnet['results'][0]['obj']['results'][0]['uuid'] }}"
-              auto_allocate_floating_ip: true
-      virtualservice:
-        - name: "{{ 'vs_app_' + hostvars['jumpbox.student.lab']['region'] }}"
-          cloud_ref: '/api/cloud?name=AWS'
-          #pool_ref: '/api/pool?name=app_pool'
-          application_profile_ref: '/api/applicationprofile?name=System-HTTP'
-          services:
-            - port: 80
-          vsvip_ref: '/api/vsvip?name=vsvip_app'
 
 - name: Build VIP network details
   avi_api_session:

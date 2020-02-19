@@ -24,7 +24,7 @@ resource "aws_instance" "jumpbox" {
   vpc_security_group_ids      = [aws_security_group.jumpbox_sg.id]
   subnet_id                   = aws_subnet.infranet.id
   associate_public_ip_address = true
-  iam_instance_profile        = aws_iam_instance_profile.lab_profile.name
+  iam_instance_profile        = aws_iam_instance_profile.jumpbox_iam_profile.name
   source_dest_check           = false
   user_data                   = data.template_file.jumpbox_userdata.rendered
   depends_on                  = [aws_internet_gateway.igw]
@@ -60,7 +60,7 @@ resource "aws_instance" "jumpbox" {
   }
 
   provisioner "remote-exec" {
-    inline      = [ 
+    inline      = [
       "while [ ! -f /tmp/cloud-init.done ]; do sleep 1; done"
     ]
   }
@@ -69,4 +69,3 @@ resource "aws_instance" "jumpbox" {
     command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i '${aws_instance.jumpbox.public_ip},' --private-key ${local.private_key_filename} --user ubuntu provisioning/provision_jumpbox.yml"
   }
 }
-

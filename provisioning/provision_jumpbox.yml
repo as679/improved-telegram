@@ -21,6 +21,7 @@
         - boto3
         - ansible-runner
       extra_args: --upgrade
+  - shell: ansible-galaxy install avinetworks.avisdk avinetworks.aviconfig
   - file:
       name: /usr/bin/python
       state: absent

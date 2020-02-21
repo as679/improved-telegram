@@ -152,6 +152,10 @@
             use_iam_roles: true
             vpc_id: "{{ hostvars['jumpbox.student.lab']['Lab_vpc_id'] }}"
             region: "{{ hostvars['jumpbox.student.lab']['region'] }}"
+            zones:
+              - usable_network_uuids:
+                  - "{{ subnet['results'][0]['obj']['results'][0]['uuid'] }}"
+                availability_zone: "{{ hostvars['jumpbox.student.lab']['availabilityZone'] }}"
           type: IPAMDNS_TYPE_AWS
         - name: "dns_app.{{ student_domain }}"
           internal_profile:
@@ -161,37 +165,47 @@
                 pass_through: true
             ttl: 30
           type: IPAMDNS_TYPE_INTERNAL_DNS
-      cloud:
-        - name: K8S
-          vtype: CLOUD_OSHIFT_K8S
-          ipam_provider_ref: "/api/ipamdnsproviderprofile?name=ipam_app.{{ student_domain }}"
-          dns_provider_ref: "/api/ipamdnsproviderprofile?name=dns_app.{{ student_domain }}"
-          oshiftk8s_configuration:
-            service_account_token: "{{ hostvars[k8s_master].avi_token }}"
-            master_nodes:
-              - "https://{{ k8s_master }}:6443"
-            docker_registry_se:
-              oshift_registry:
-                registry_service: docker-registry
-                registry_namespace: default
-              registry: avinetworks/se
-              private: false
-            enable_event_subscription: true
-            feproxy_vips_enable_proxy_arp: true
-            app_sync_frequency: 15
-            disable_auto_backend_service_sync: true
-            disable_auto_frontend_service_sync: false
-            container_port_match_http_service: true
-            se_exclude_attributes:
-              - attribute: node-role.kubernetes.io/master
-            l4_health_monitoring: true
-            se_deployment_method: SE_CREATE_POD
-            sdn_overlay: true
-            use_scheduling_disabled_nodes: false
+
+- name: Define K8S cloud configuration
+  avi_cloud:
+    avi_credentials: "{{ avi_credentials }}"
+    name: K8S
+    vtype: CLOUD_OSHIFT_K8S
+    ipam_provider_ref: "/api/ipamdnsproviderprofile?name=ipam_app.{{ student_domain }}"
+    dns_provider_ref: "/api/ipamdnsproviderprofile?name=dns_app.{{ student_domain }}"
+    oshiftk8s_configuration:
+      service_account_token: "{{ hostvars[k8s_master].avi_token }}"
+      master_nodes:
+        - "https://{{ k8s_master }}:6443"
+      docker_registry_se:
+        oshift_registry:
+          registry_service: docker-registry
+          registry_namespace: default
+        registry: avinetworks/se
+        private: false
+      enable_event_subscription: true
+      feproxy_vips_enable_proxy_arp: true
+      app_sync_frequency: 15
+      disable_auto_backend_service_sync: true
+      disable_auto_frontend_service_sync: false
+      container_port_match_http_service: true
+      se_exclude_attributes:
+        - attribute: node-role.kubernetes.io/master
+      l4_health_monitoring: true
+      se_deployment_method: SE_CREATE_POD
+      sdn_overlay: true
+      use_scheduling_disabled_nodes: false
+      avi_bridge_subnet:
+        ip_addr:
+          type: V4
+          addr: 172.18.0.1
+        mask: 16
+      disable_auto_se_creation: false
+    license_type: LIC_CORES
 
 - name: Patch systemconfiguration with K8S DNS Virtual Service
   avi_systemconfiguration:
     avi_credentials: "{{ avi_credentials }}"
     avi_api_update_method: patch
     avi_api_patch_op: replace
-    dns_virtualservice_refs: "/api/virtualservice/?name='vs_dns_'{{ hostvars['jumpbox.student.lab']['region'] }}"
+    dns_virtualservice_refs: "/api/virtualservice/?name=vs_dns_{{ hostvars['jumpbox.student.lab']['region'] }}"

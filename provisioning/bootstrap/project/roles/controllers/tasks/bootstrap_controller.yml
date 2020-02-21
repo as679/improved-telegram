@@ -170,6 +170,12 @@
             service_account_token: "{{ hostvars[k8s_master].avi_token }}"
             master_nodes:
               - "https://{{ k8s_master }}:6443"
+            docker_registry_se:
+              oshift_registry:
+                registry_service: docker-registry
+                registry_namespace: default
+              registry: avinetworks/se
+              private: false
             enable_event_subscription: true
             feproxy_vips_enable_proxy_arp: true
             app_sync_frequency: 15

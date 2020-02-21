@@ -36,7 +36,7 @@
       state: directory
       mode: '0600'
   - copy:
-      src: "{{ private_key_filename }}"
+      src: ".{{ private_key_filename }}"
       dest: "/home/{{ item }}/.ssh/id_rsa"
       owner: "{{ item }}"
       group: "{{ item }}"
@@ -45,7 +45,7 @@
       - ubuntu
       - aviadmin
   - copy:
-      src: "{{ private_key_filename }}"
+      src: ".{{ private_key_filename }}"
       dest: /root/.ssh/id_rsa
       owner: root
       group: root

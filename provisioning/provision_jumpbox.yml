@@ -38,7 +38,7 @@
       state: directory
       mode: '0600'
   - copy:
-      src: ../keys/generated-access-key.pem
+      src: "../keys/{{ private_key_filename }}"
       dest: "/home/{{ item }}/.ssh/id_rsa"
       owner: "{{ item }}"
       group: "{{ item }}"
@@ -47,7 +47,7 @@
       - ubuntu
       - aviadmin
   - copy:
-      src: ../keys/generated-access-key.pem
+      src: "../keys/{{ private_key_filename }}"
       dest: /root/.ssh/id_rsa
       owner: root
       group: root

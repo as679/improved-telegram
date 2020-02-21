@@ -2,8 +2,13 @@ resource "tls_private_key" "generated" {
   algorithm = "RSA"
 }
 
+
+resource "random_pet" "random" {
+  length    = 1
+}
+
 resource "aws_key_pair" "generated" {
-  key_name   = var.generated_key_name
+  key_name   = "generated-access-key-${random_pet.random.id}"
   public_key = tls_private_key.generated.public_key_openssh
 
   lifecycle {
@@ -12,8 +17,8 @@ resource "aws_key_pair" "generated" {
 }
 
 locals {
-  public_key_filename  = "./keys/${var.generated_key_name}.pub"
-  private_key_filename = "./keys/${var.generated_key_name}.pem"
+  public_key_filename  = "./keys/${aws_key_pair.generated.key_name}.pub"
+  private_key_filename = "./keys/${aws_key_pair.generated.key_name}.pem"
 }
 
 resource "local_file" "public_key_openssh" {

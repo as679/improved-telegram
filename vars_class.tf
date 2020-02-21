@@ -65,7 +65,3 @@ variable "aws_az" {
   }
 }
 
-variable "generated_key_name" {
-  description = "AWS SSH keypair name"
-  default     = "generated-access-key"
-}

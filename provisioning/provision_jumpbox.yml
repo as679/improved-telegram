@@ -22,10 +22,8 @@
         - boto3
         - ansible-runner
       extra_args: --upgrade
-  - shell: "sudo -u {{ item }} -H ansible-galaxy install avinetworks.avisdk avinetworks.aviconfig"
-    loop:
-      - ubuntu
-      - aviadmin
+  - shell: "ansible-galaxy install avinetworks.avisdk avinetworks.aviconfig"
+    become_user: ubuntu
   - file:
       name: /usr/bin/python
       state: absent
@@ -38,7 +36,7 @@
       state: directory
       mode: '0600'
   - copy:
-      src: "../keys/{{ private_key_filename }}"
+      src: "{{ private_key_filename }}"
       dest: "/home/{{ item }}/.ssh/id_rsa"
       owner: "{{ item }}"
       group: "{{ item }}"
@@ -47,7 +45,7 @@
       - ubuntu
       - aviadmin
   - copy:
-      src: "../keys/{{ private_key_filename }}"
+      src: "{{ private_key_filename }}"
       dest: /root/.ssh/id_rsa
       owner: root
       group: root

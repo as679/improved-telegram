@@ -80,7 +80,7 @@
       vpc_id: "{{ hostvars['jumpbox.student.lab']['Lab_vpc_id'] }}"
       zones:
         - availability_zone: "{{ hostvars['jumpbox.student.lab']['availabilityZone'] }}"
-          mgmt_network_name: "{{ hostvars['jumpbox.student.lab']['Lab_avi_management_network'] }}"
+          mgmt_network_name: "{{ hostvars['jumpbox.student.lab']['Lab_avi_mgmt_net'] }}"
   register: cloud
 
 
@@ -96,7 +96,7 @@
     path: "networksubnetlist?name={{ item }}&cloud_uuid={{ cloud['obj']['uuid'] }}"
   register: subnet
   with_items:
-    - "{{ hostvars['jumpbox.student.lab']['Lab_avi_vip_network'] }}"
+    - "{{ hostvars['jumpbox.student.lab']['Lab_avi_app_net'] }}"
 
 - name: Define DNS Virtual Service
   import_role:

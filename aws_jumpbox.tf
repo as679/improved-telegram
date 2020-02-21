@@ -39,8 +39,8 @@ resource "aws_instance" "jumpbox" {
     Lab_avi_admin_password        = var.avi_admin_password
     Lab_avi_backup_admin_username = var.avi_backup_admin_username
     Lab_avi_backup_admin_password = var.avi_backup_admin_password
-    Lab_avi_management_network    = "${var.id}_management_network"
-    Lab_avi_vip_network           = "${var.id}_infra_network"
+    Lab_avi_mgmt_net              = "${var.id}_mgmt_net"
+    Lab_avi_app_net               = "${var.id}_app_net"
     Lab_Timezone                  = var.lab_timezone
     Lab_Noshut                    = "jumpbox"
   }

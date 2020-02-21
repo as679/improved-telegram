@@ -21,7 +21,10 @@
         - boto3
         - ansible-runner
       extra_args: --upgrade
-  - shell: ansible-galaxy install avinetworks.avisdk avinetworks.aviconfig
+  - shell: "sudo -u {{ item }} -H ansible-galaxy install avinetworks.avisdk avinetworks.aviconfig"
+    loop:
+      - ubuntu
+      - aviadmin
   - file:
       name: /usr/bin/python
       state: absent

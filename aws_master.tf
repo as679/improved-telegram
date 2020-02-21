@@ -33,7 +33,7 @@ resource "aws_instance" "master" {
     Lab_Group    = "k8s_masters"
     Lab_Name     = "master${floor(count.index / var.student_count % var.master_count + 1)}.student${count.index % var.student_count + 1}.lab"
     Lab_Timezone = var.lab_timezone
-    kubernetes.io/cluster/${student${count.index % var.student_count + 1}} = shared
+    "kubernetes.io/cluster/student${count.index % var.student_count + 1}" = "shared"
   }
 
   root_block_device {

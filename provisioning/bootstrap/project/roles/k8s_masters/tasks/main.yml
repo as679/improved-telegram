@@ -44,9 +44,8 @@
       enabled: true
   - copy:
       src: kubeadm.yaml
-      dest: /root/kubeadm.yaml
-    become: true
-  - shell: kubeadm init --config=/root/kubeadm.yml
+      dest: /tmp/kubeadm.yaml
+  - shell: kubeadm init --config=/tmp/kubeadm.yaml
     register: kubeadm_init
   - file:
       path: /home/aviadmin/.kube

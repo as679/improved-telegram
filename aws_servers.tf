@@ -33,7 +33,7 @@ resource "aws_instance" "server" {
     Owner     = var.owner
     Lab_Group = "servers"
     Lab_Name  = "server${floor(count.index / var.student_count % var.server_count + 1)}.student${count.index % var.student_count + 1}.lab"
-    kubernetes.io/cluster/${student${count.index % var.student_count + 1}} = shared
+    "kubernetes.io/cluster/student${count.index % var.student_count + 1}" = "shared"
   }
 
   root_block_device {

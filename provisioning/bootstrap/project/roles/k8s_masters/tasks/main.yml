@@ -23,6 +23,7 @@
         - kubeadm
         - kubectl
         - redis-tools
+        - jq
   - copy:
       src: daemon.json
       dest: /etc/docker/daemon.json
@@ -49,9 +50,12 @@
   - copy:
       remote_src: yes
       src: /etc/kubernetes/admin.conf
-      dest: /home/aviadmin/.kube/config
-      owner: aviadmin
-      group: aviadmin
+      dest: "/home/{{ item }}/.kube/config"
+      owner: "{{ item }}"
+      group: "{{ item }}"
+    loop:
+      - ubuntu
+      - aviadmin
   - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
     register: kubeadm_network
   - shell: kubeadm token list | grep authentication | cut -d' ' -f1
@@ -63,3 +67,24 @@
   - shell: "redis-cli -h jumpbox.student.lab hset {{ inventory_hostname }} kubeadm_hash {{ kubeadm_hash.stdout }}"
     register: redis_kubeadm_hash
   when: kubeadm_config.rc > 0
+- shell: kubectl --kubeconfig /etc/kubernetes/admin.conf get serviceaccount | grep avi
+  register: kubectl_serviceaccount
+  ignore_errors: yes
+  changed_when: "kubectl_serviceaccount.rc != 0"
+- block:
+  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create serviceaccount avi -n default
+  - copy:
+      src: clusterrole.json
+      dest: /home/aviadmin/clusterrole.json
+  - copy:
+      src: clusterbinding.json
+      dest: /home/aviadmin/clusterbinding.json
+  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f /home/aviadmin/clusterrole.json
+  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f /home/aviadmin/clusterbinding.json
+  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf get secret | grep avi-token | cut -d' ' -f1
+    register: avi_token_name
+  - shell: "kubectl --kubeconfig /etc/kubernetes/admin.conf get secret {{ avi_token_name.stdout }} -o=jsonpath='{.data.token}' |  base64 --decode"
+    register: avi_token
+  - shell: "redis-cli -h jumpbox.student.lab hset {{ inventory_hostname }} avi_token {{ avi_token.stdout }}"
+    register: redis_avi_token
+  when: kubectl_serviceaccount.rc > 0

@@ -6,7 +6,7 @@
     src: resolv.conf.j2
     dest: /etc/resolv.conf
 - set_fact:
-    k8s_master: "{{ ['master1', inventory_hostname.split('.')[-2:] | join('.')] | join('.') }}"
+    k8s_master: "{{ inventory_hostname | regex_replace('server(\\d+)','master1') }}"
 - wait_for:
     host: "{{ k8s_master }}"
     port: 6443

@@ -22,6 +22,7 @@ resource "aws_instance" "master" {
   vpc_security_group_ids      = [aws_security_group.jumpbox_sg.id]
   subnet_id                   = aws_subnet.infranet.id
   associate_public_ip_address = true
+  iam_instance_profile        = aws_iam_instance_profile.k8s_iam_profile.name
   source_dest_check = false
   user_data         = data.template_file.master_userdata[count.index].rendered
   depends_on        = [aws_instance.jumpbox]
@@ -32,6 +33,7 @@ resource "aws_instance" "master" {
     Lab_Group    = "k8s_masters"
     Lab_Name     = "master${floor(count.index / var.student_count % var.master_count + 1)}.student${count.index % var.student_count + 1}.lab"
     Lab_Timezone = var.lab_timezone
+    kubernetes.io/cluster/${student${count.index % var.student_count + 1}} = shared
   }
 
   root_block_device {
@@ -40,4 +42,3 @@ resource "aws_instance" "master" {
     delete_on_termination = "true"
   }
 }
-

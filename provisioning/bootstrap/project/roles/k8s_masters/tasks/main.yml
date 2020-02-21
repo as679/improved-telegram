@@ -42,7 +42,11 @@
       name: kubelet
       state: started
       enabled: true
-  - shell: kubeadm init --pod-network-cidr=10.244.0.0/16
+  - copy:
+      src: kubeadm.yaml
+      dest: /root/kubeadm.yaml
+    become: true
+  - shell: kubeadm init --config=/root/kubeadm.yml
     register: kubeadm_init
   - file:
       path: /home/aviadmin/.kube

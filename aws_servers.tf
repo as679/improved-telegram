@@ -22,7 +22,7 @@ resource "aws_instance" "server" {
   vpc_security_group_ids = [aws_security_group.jumpbox_sg.id]
   subnet_id              = aws_subnet.appnet.id
   associate_public_ip_address = true
-
+  iam_instance_profile        = aws_iam_instance_profile.k8s_iam_profile.name
   #  private_ip             = format("%s%02d", var.base_ip, count.index + 1)
   source_dest_check      = false
   user_data              = data.template_file.server_userdata[count.index].rendered
@@ -33,6 +33,7 @@ resource "aws_instance" "server" {
     Owner     = var.owner
     Lab_Group = "servers"
     Lab_Name  = "server${floor(count.index / var.student_count % var.server_count + 1)}.student${count.index % var.student_count + 1}.lab"
+    kubernetes.io/cluster/${student${count.index % var.student_count + 1}} = shared
   }
 
   root_block_device {
@@ -41,4 +42,3 @@ resource "aws_instance" "server" {
     delete_on_termination = "true"
   }
 }
-

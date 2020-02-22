@@ -4,8 +4,8 @@ kind: ClusterConfiguration
 apiServer:
   extraArgs:
     cloud-provider: aws
-clusterName:
-controlPlaneEndpoint: cp-nlb.elb.us-east-2.amazonaws.com
+clusterName: {{ inventory_hostname | regex_replace('master1.','') }}
+controlPlaneEndpoint: {{ inventory_hostname }}
 controllerManager:
   extraArgs:
     cloud-provider: aws

@@ -42,6 +42,23 @@
   - user:
       name: aviadmin
       groups: docker
+  - shell: curl http://169.254.169.254/latest/meta-data/local-hostname
+    register: aws_hostname
+  - debug:
+      var: aws_hostname.stdout
+  - debug:
+      var: ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0])
+  - hostname:
+      name: "{{ aws_hostname.stdout }}"
+  - lineinfile:
+      dest: /etc/hosts
+      insertafter: EOF
+      line: "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} {{ aws_hostname.stdout }}"
+    delegate_to: localhost
+  - systemd:
+      state: restarted
+      name: dnsmasq
+    delegate_to: localhost
   - service:
       name: kubelet
       state: started

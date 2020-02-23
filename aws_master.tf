@@ -20,7 +20,7 @@ resource "aws_instance" "master" {
   instance_type               = var.flavour_master
   key_name                    = aws_key_pair.generated.key_name
   vpc_security_group_ids      = [aws_security_group.jumpbox_sg.id]
-  subnet_id                   = aws_subnet.infranet.id
+  subnet_id                   = aws_subnet.appnet.id
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.k8s_iam_profile.name
   source_dest_check = false

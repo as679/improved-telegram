@@ -211,6 +211,9 @@ name = "${var.id}_controller_iam_profile"
 role = aws_iam_role.controller_iam_role.name
 }
 
+# IAM roles for CNI and Cloud Provider
+# https://github.com/aws/amazon-vpc-cni-k8s
+# https://github.com/kubernetes/cloud-provider-aws
 
 resource "aws_iam_role_policy" "k8s_iam_policy" {
   name   = "${var.id}_k8s_policy"
@@ -222,6 +225,17 @@ resource "aws_iam_role_policy" "k8s_iam_policy" {
     {
       "Effect": "Allow",
       "Action": [
+        "ec2:AssignPrivateIpAddresses",
+        "ec2:AttachNetworkInterface",
+        "ec2:CreateNetworkInterface",
+        "ec2:DeleteNetworkInterface",
+        "ec2:DescribeInstances",
+        "ec2:DescribeInstanceTypes",
+        "ec2:DescribeTags",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DetachNetworkInterface",
+        "ec2:ModifyNetworkInterfaceAttribute",
+        "ec2:UnassignPrivateIpAddresses",
         "autoscaling:DescribeAutoScalingGroups",
         "autoscaling:DescribeLaunchConfigurations",
         "autoscaling:DescribeTags",

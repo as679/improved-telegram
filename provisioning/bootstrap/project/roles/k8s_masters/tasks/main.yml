@@ -111,3 +111,16 @@
   - shell: "redis-cli -h jumpbox.student.lab hset {{ inventory_hostname }} avi_token {{ avi_token.stdout }}"
     register: redis_avi_token
   when: kubectl_serviceaccount.rc > 0
+
+- shell: helm
+  register: helm_state
+  ignore_errors: yes
+  changed_when: "helm_state.rc != 0"
+- block:
+  - shell: curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+  - shell: helm --kubeconfig /etc/kubernetes/admin.conf repo add stable https://kubernetes-charts.storage.googleapis.com/
+  - shell: helm --kubeconfig /etc/kubernetes/admin.conf helm repo update
+  - shell: helm --kubeconfig /etc/kubernetes/admin.conf install dashboard stable/kubernetes-dashboard
+  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f https://projectcontour.io/quickstart/contour.yaml
+  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f https://projectcontour.io/examples/kuard.yaml
+  when: helm_state.rc > 0

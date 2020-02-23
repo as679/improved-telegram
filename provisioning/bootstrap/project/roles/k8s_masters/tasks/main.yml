@@ -65,8 +65,11 @@
   - shell: kubeadm init --config=/tmp/kubeadm.yaml
     register: kubeadm_init
   - file:
-      path: /home/aviadmin/.kube
+      path: "/home/{{ item }}/.kube"
       state: directory
+    loop:
+      - ubuntu
+      - aviadmin
   - copy:
       remote_src: yes
       src: /etc/kubernetes/admin.conf

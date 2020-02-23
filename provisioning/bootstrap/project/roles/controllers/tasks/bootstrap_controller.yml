@@ -6,7 +6,7 @@
     status_code: 200
   register: result
   until: result.status == 200
-  retries: 300
+  retries: 600
   delay: 10
 
 - name: Refresh in-memory inventory
@@ -137,6 +137,12 @@
 
 - set_fact:
     k8s_master: "{{ inventory_hostname | regex_replace('controller','master1') }}"
+
+- wait_for:
+    host: "{{ k8s_master }}"
+    port: 6443
+    delay: 10
+
 - debug:
     var: hostvars[k8s_master].avi_token
 

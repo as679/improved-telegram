@@ -19,7 +19,7 @@ resource "aws_instance" "master" {
   availability_zone           = var.aws_az[var.aws_region]
   instance_type               = var.flavour_master
   key_name                    = aws_key_pair.generated.key_name
-  vpc_security_group_ids      = [aws_security_group.jumpbox_sg.id]
+  vpc_security_group_ids      = [aws_security_group.k8s_sg[count.index].id]
   subnet_id                   = aws_subnet.appnet.id
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.k8s_iam_profile.name

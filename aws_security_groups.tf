@@ -101,3 +101,55 @@ resource "aws_security_group" "jumpbox_sg" {
   }
 }
 
+resource "aws_security_group" "k8s_sg" {
+  description = "Allow incoming connections to the lab jumpbox."
+  vpc_id      = aws_vpc.K8S_vpc.id
+  count       = var.student_count
+
+  tags = {
+    Name = "k8s_sg_student${count.index % var.student_count + 1}"
+    "kubernetes.io/cluster/student${count.index % var.student_count + 1}" = "shared"
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8443
+    to_port     = 8443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [var.vpc_cidr]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}

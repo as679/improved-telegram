@@ -79,8 +79,8 @@
     loop:
       - ubuntu
       - aviadmin
-  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.6/aws-k8s-cni.yaml
-  #- shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  #- shell: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.6/aws-k8s-cni.yaml
+  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
     register: kubeadm_network
   - shell: kubeadm token list | grep authentication | cut -d' ' -f1
     register: kubeadm_token

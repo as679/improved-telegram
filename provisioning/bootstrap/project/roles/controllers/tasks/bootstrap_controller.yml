@@ -135,6 +135,12 @@
   delegate_to: localhost
   become: true
 
+- systemd:
+    state: restarted
+    name: dnsmasq
+  delegate_to: localhost
+  become: true
+
 - set_fact:
     k8s_master: "{{ inventory_hostname | regex_replace('controller','master1') }}"
 

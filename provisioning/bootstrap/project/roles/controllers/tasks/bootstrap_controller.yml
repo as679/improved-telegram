@@ -226,6 +226,8 @@
       "{{ oshiftk8s_configuration }}"
     license_type: LIC_CORES
 
+# Below code (pause + avi_cloud) is not required for production grade instances, safe grap for a slow storage instances
+
 - pause:
     minutes: 10
 

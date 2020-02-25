@@ -1,0 +1,13 @@
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard
+  labels:
+    app: kubernetes-dashboard
+  annotations:
+    avi_proxy: "{\"vsvip\": {\"vip\":[{ \"vip_id\": \"0\", \"auto_allocate_floating_ip\": true, \"subnet_uuid\": \"{{ subnet_id.content}}\", \"auto_allocate_ip\": true}]}, \"virtualservice\":{\"services\": [{ \"port\": 443 }]},\"version\": \"18.2.7\"}"
+spec:
+  backend:
+    serviceName: kubernetes-dashboard
+    servicePort: 443

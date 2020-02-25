@@ -38,22 +38,24 @@
   - user:
       name: aviadmin
       groups: docker
-  - shell: curl http://169.254.169.254/latest/meta-data/local-hostname
+  - uri:
+      url: "http://169.254.169.254/latest/meta-data/local-hostname"
+      return_content: yes
     register: aws_hostname
   - debug:
-      var: aws_hostname.stdout
+      var: aws_hostname.content
   - debug:
       var: ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0])
   - hostname:
-      name: "{{ aws_hostname.stdout }}"
+      name: "{{ aws_hostname.content }}"
   - service:
       name: kubelet
       state: started
       enabled: true
   - template:
       src: kubeadm.j2
-      dest: /tmp/kubeadm.yaml
-  - shell: kubeadm init --config=/tmp/kubeadm.yaml
+      dest: /home/ubuntu/kubeadm.yaml
+  - shell: kubeadm init --config=/home/ubuntu/kubeadm.yaml
     register: kubeadm_init
   - file:
       path: "/home/{{ item }}/.kube"
@@ -108,11 +110,31 @@
   register: helm_state
   ignore_errors: yes
   changed_when: "helm_state.rc != 0"
+
 - block:
+  - uri:
+      url: "http://169.254.169.254/latest/meta-data/network/interfaces/macs/{{ ansible_default_ipv4.macaddress }}/subnet-id"
+      return_content: yes
+    register: subnet_id
   - shell: curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
   - shell: helm --kubeconfig /etc/kubernetes/admin.conf repo add stable https://kubernetes-charts.storage.googleapis.com/
   - shell: helm --kubeconfig /etc/kubernetes/admin.conf repo update
-  - shell: helm --kubeconfig /etc/kubernetes/admin.conf install dashboard stable/kubernetes-dashboard
-  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f https://projectcontour.io/examples/kuard.yaml
-  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f https://projectcontour.io/quickstart/contour.yaml
+  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc5/aio/deploy/recommended.yaml
+  - template:
+      src: kubernetes-dashboard-ingress.j2
+      dest: /home/ubuntu/kubernetes-dashboard-ingress.yaml
+  - copy:
+      src: "{{ item }}"
+      dest: "/home/ubuntu/{{ item }}"
+    loop:
+      - kubernetes-dashboard-ro.yaml
+      - kubernetes-dashboard-rw.yaml
+  - shell: "kubectl --kubeconfig /etc/kubernetes/admin.conf create -f /home/ubuntu/{{ item }} -n kubernetes-dashboard"
+    loop:
+      - kubernetes-dashboard-ro.yaml
+      - kubernetes-dashboard-ingress.yaml
+  - template:
+      src: kuard.j2
+      dest: /home/ubuntu/kuard.yaml
+  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /home/ubuntu/kuard.yaml
   when: helm_state.rc > 0

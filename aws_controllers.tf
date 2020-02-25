@@ -11,6 +11,24 @@ data "template_file" "controller_userdata" {
   }
 }
 
+resource "aws_eip" "ctrl_eip" {
+  count = var.student_count
+  vpc   = true
+
+  tags = {
+    Name               = "${var.id}_student${count.index + 1}_controller"
+    Owner              = var.owner
+  }
+}
+
+resource "aws_eip_association" "ctrl_eip_assoc" {
+  count         = var.student_count
+  instance_id   = aws_instance.ctrl[count.index].id
+  allocation_id = aws_eip.ctrl_eip[count.index].id
+
+}
+
+
 resource "aws_instance" "ctrl" {
   count                       = var.student_count
   ami                         = var.ami_avi_controller[var.aws_region]
@@ -19,7 +37,6 @@ resource "aws_instance" "ctrl" {
   key_name                    = aws_key_pair.generated.key_name
   vpc_security_group_ids      = [aws_security_group.ctrl_sg.id]
   subnet_id                   = aws_subnet.infranet.id
-  associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.controller_iam_profile.name
   source_dest_check           = false
   user_data                   = data.template_file.controller_userdata[count.index].rendered

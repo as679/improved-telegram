@@ -6,5 +6,5 @@ output "Jumpbox_PublicIP" {
 }
 
 output "Controller_PublicIP" {
-  value = aws_instance.ctrl.*.public_ip
+  value = aws_eip.ctrl_eip.*.public_ip
 }

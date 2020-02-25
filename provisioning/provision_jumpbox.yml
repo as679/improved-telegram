@@ -1,6 +1,6 @@
 ---
 - hosts: all
-  gather_facts: false
+  gather_facts: true
   become: true
   tasks:
   - apt_repository:
@@ -22,15 +22,17 @@
         - boto3
         - ansible-runner
       extra_args: --upgrade
-  - shell: "ansible-galaxy install avinetworks.avisdk avinetworks.aviconfig"
+  - shell: ansible-galaxy install avinetworks.avisdk avinetworks.aviconfig
     become_user: ubuntu
   - file:
       name: /usr/bin/python
       state: absent
+    ignore_errors: yes
   - file:
       dest: /usr/bin/python
       src: /usr/bin/python3.6
       state: link
+    ignore_errors: yes
   - file:
       path: /root/.ssh
       state: directory
@@ -108,6 +110,10 @@
       - { regexp: '^#(no-resolv)$', replace: '\1' }
       - { regexp: '^#(server)=/localnet/192.168.0.1$', replace: '\1=8.8.8.8' }
       - { regexp: '^#(local)=/localnet/$', replace: '\1=/lab/' }
+  - lineinfile:
+      dest: /etc/dnsmasq.conf
+      insertafter: EOF
+      line: server=/compute.internal/{{ ansible_default_ipv4.address  |  ipsubnet('24') | ipaddr('2')  | ipaddr('address') }}
   - systemd:
       state: restarted
       name: dnsmasq

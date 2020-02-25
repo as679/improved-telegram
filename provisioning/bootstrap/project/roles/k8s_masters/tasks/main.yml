@@ -46,15 +46,6 @@
       var: ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0])
   - hostname:
       name: "{{ aws_hostname.stdout }}"
-  - lineinfile:
-      dest: /etc/hosts
-      insertafter: EOF
-      line: "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }} {{ aws_hostname.stdout }}"
-    delegate_to: localhost
-  - systemd:
-      state: restarted
-      name: dnsmasq
-    delegate_to: localhost
   - service:
       name: kubelet
       state: started
@@ -120,8 +111,8 @@
 - block:
   - shell: curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
   - shell: helm --kubeconfig /etc/kubernetes/admin.conf repo add stable https://kubernetes-charts.storage.googleapis.com/
-  - shell: helm --kubeconfig /etc/kubernetes/admin.conf helm repo update
+  - shell: helm --kubeconfig /etc/kubernetes/admin.conf repo update
   - shell: helm --kubeconfig /etc/kubernetes/admin.conf install dashboard stable/kubernetes-dashboard
-  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f https://projectcontour.io/quickstart/contour.yaml
   - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f https://projectcontour.io/examples/kuard.yaml
+  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f https://projectcontour.io/quickstart/contour.yaml
   when: helm_state.rc > 0

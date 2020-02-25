@@ -23,7 +23,6 @@ resource "aws_instance" "server" {
   subnet_id              = aws_subnet.appnet.id
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.k8s_iam_profile.name
-  #  private_ip             = format("%s%02d", var.base_ip, count.index + 1)
   source_dest_check      = false
   user_data              = data.template_file.server_userdata[count.index].rendered
   depends_on             = [aws_instance.jumpbox]

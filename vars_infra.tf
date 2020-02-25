@@ -23,7 +23,7 @@ variable "flavour_ubuntu" {
 
 variable "flavour_avi" {
   description = "AWS instance type for Avi controllers"
-  default     = "c5n.2xlarge"
+  default     = "t2.2xlarge"
 }
 
 variable "vol_size_ubuntu" {
@@ -35,4 +35,3 @@ variable "vol_size_avi" {
   description = "Volume size for Avi controllers in G"
   default     = "128"
 }
-

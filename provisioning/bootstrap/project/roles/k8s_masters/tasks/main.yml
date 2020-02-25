@@ -131,7 +131,7 @@
       - kubernetes-dashboard-rw.yaml
   - shell: "kubectl --kubeconfig /etc/kubernetes/admin.conf create -f /home/ubuntu/{{ item }} -n kubernetes-dashboard"
     loop:
-      - kubernetes-dashboard-ro.yaml
+      - kubernetes-dashboard-rw.yaml
       - kubernetes-dashboard-ingress.yaml
   - template:
       src: kuard.j2

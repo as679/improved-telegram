@@ -221,7 +221,7 @@
     license_type: LIC_CORES
 
 - pause:
-    minutes: 2
+    minutes: 4
 
 - name: Define K8S cloud configuration
   avi_cloud:

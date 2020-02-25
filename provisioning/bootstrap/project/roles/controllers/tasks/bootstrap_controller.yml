@@ -172,13 +172,14 @@
             ttl: 30
           type: IPAMDNS_TYPE_INTERNAL_DNS
 
-- name: Define K8S cloud configuration
-  avi_cloud:
+- name: Patch systemconfiguration with K8S DNS Virtual Service
+  avi_systemconfiguration:
     avi_credentials: "{{ avi_credentials }}"
-    name: K8S
-    vtype: CLOUD_OSHIFT_K8S
-    ipam_provider_ref: "/api/ipamdnsproviderprofile?name=ipam_app.{{ student_domain }}"
-    dns_provider_ref: "/api/ipamdnsproviderprofile?name=dns_app.{{ student_domain }}"
+    avi_api_update_method: patch
+    avi_api_patch_op: replace
+    dns_virtualservice_refs: "/api/virtualservice/?name=vs_dns_{{ hostvars['jumpbox.student.lab']['region'] }}"
+
+- set_fact:
     oshiftk8s_configuration:
       service_account_token: "{{ hostvars[k8s_master].avi_token }}"
       master_nodes:
@@ -207,11 +208,28 @@
           addr: 172.18.0.1
         mask: 16
       disable_auto_se_creation: false
+
+- name: Discover K8S cloud configuration
+  avi_cloud:
+    avi_credentials: "{{ avi_credentials }}"
+    name: K8S
+    vtype: CLOUD_OSHIFT_K8S
+    ipam_provider_ref: "/api/ipamdnsproviderprofile?name=ipam_app.{{ student_domain }}"
+    dns_provider_ref: "/api/ipamdnsproviderprofile?name=dns_app.{{ student_domain }}"
+    oshiftk8s_configuration:
+      "{{ oshiftk8s_configuration }}"
     license_type: LIC_CORES
 
-- name: Patch systemconfiguration with K8S DNS Virtual Service
-  avi_systemconfiguration:
+- pause:
+    minutes: 2
+
+- name: Define K8S cloud configuration
+  avi_cloud:
     avi_credentials: "{{ avi_credentials }}"
-    avi_api_update_method: patch
-    avi_api_patch_op: replace
-    dns_virtualservice_refs: "/api/virtualservice/?name=vs_dns_{{ hostvars['jumpbox.student.lab']['region'] }}"
+    name: K8S
+    vtype: CLOUD_OSHIFT_K8S
+    ipam_provider_ref: "/api/ipamdnsproviderprofile?name=ipam_app.{{ student_domain }}"
+    dns_provider_ref: "/api/ipamdnsproviderprofile?name=dns_app.{{ student_domain }}"
+    oshiftk8s_configuration:
+      "{{ oshiftk8s_configuration }}"
+    license_type: LIC_CORES

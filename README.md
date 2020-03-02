@@ -2,9 +2,9 @@
 
 ## Solution Overview
 
-Extensible deployment framework from the infrastructure layer covered by Terraform up to the configuration management handled by Ansible.
+Extensible deployment framework starting from the infrastructure layer covered by Terraform up to the configuration management handled by Ansible.
 
-The current repo deploys n-number of target K8S pods with VMware NSX Advanced Load Balancer (Avi Networks) as Ingress controller on AWS.
+The current repo deploys n-number of target K8S pods with VMware NSX Advanced Load Balancer (Avi Networks) as Ingress Controller on AWS.
 
 ## Authors
 

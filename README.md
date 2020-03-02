@@ -53,7 +53,8 @@ Terraform has been successfully initialized!
 root@avitools:~/improved-telegram# cp sample_terraform_tfvars terraform.tfvars
 ```
 4. Fill out the required variables - terraform.tfvars
-**NOTE**: Avi Controller AMI must be shared with the target AWS account
+
+    **NOTE**: Avi Controller AMI must be shared with the target AWS account
 ```
 #terraform.tfvars
 aws_access_key = ""
@@ -185,4 +186,4 @@ Data
 namespace:  20 bytes
 token:     eyJhbGciOiJSUzI1NiIsImtpZCI6IndvMjBrQWo4eEo5UkNDaUN4ei1iQ21FdVdhZVFqQV9OdEU5SjhGZFBBS2sifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZC10b2tlbi1ma2pneCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImRjNWMyMDAzLWM5YzgtNDlmNC1iN2MzLWMyMmMyYTZiOTliYyIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlcm5ldGVzLWRhc2hib2FyZDprdWJlcm5ldGVzLWRhc2hib2FyZCJ9.mP6iUT_I7ckVpxxGVLPWcwhqwytcewKzrOQRIvJcwS_Qrm1XUUS-ZLP2LA_knyDHyGVLTYmlldAy0AIk_SpD4YcfoipINEUrUsocGg40QqdV0sSVmDwgUlgNbprIrwB02XfCBMwHWVF6ABi9nwQgNSVcZBj8wMkYeTxIP8uBeVGVK08MzZWu4w9N_NRhmWpQF2Uzh6x_nr6AldhzAH7QdiDqVwahZ_88X7lu5qaq-j2KYwHkhciQVa6-SfZ4W96TRDOVwEdnZejIqKNDDS5kdXa1bUGYnrwkZSAQvkJ-oCWkQt2D9EhE8Fv-tx-uXdlMMqLZmp1msu6NeSjm_ijh5w
 ```
-12. Login to the pod 1 Avi Controller, navigate to "All Tenants" view, find the kubernetes-dashboard virtual service and access the public IP of kubernetes dashboard with the token looked up in the previous state.
+12. Login to the pod 1 Avi Controller, navigate to "All Tenants" view, find the kubernetes-dashboard virtual service and access the public IP of kubernetes dashboard with the token looked up in the previous step.

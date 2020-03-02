@@ -22,7 +22,7 @@ The current repo deploys n-number of target K8S pods with VMware NSX Advanced Lo
  - Ansible >= 2.9.2
  - AWS
 
-     **NOTE**: all the deployment work performed within avitools container: [https://github.com/avinetworks/avitools](https://github.com/avinetworks/avitools)
+     **NOTE**: all the deployment work was performed within avitools container: [https://github.com/avinetworks/avitools](https://github.com/avinetworks/avitools)
 
 ## Getting Started
 
@@ -35,7 +35,8 @@ Cloning into ‘improved-telegram'...
 
  2. Initialize a Terraform working directory
  ```
-root@avitools:~/improved-telegram# terraform init Initializing the
+root@avitools:~/improved-telegram# terraform init
+Initializing the
 backend... Initializing provider plugins... Checking for available
 provider plugins...
 
@@ -52,7 +53,7 @@ Terraform has been successfully initialized!
 root@avitools:~/improved-telegram# cp sample_terraform_tfvars terraform.tfvars
 ```
 4. Fill out the required variables - terraform.tfvars
-    **NOTE**: Avi Controller AMI must be shared with the target AWS account
+**NOTE**: Avi Controller AMI must be shared with the target AWS account
 ```
 #terraform.tfvars
 aws_access_key = ""
@@ -67,7 +68,9 @@ pod_count = 1
 5. For more variable details please refer to vars_*.tf files such as **vars_ami_ids.tf**, vars_pod.tf, vars_infra.tf
 6. Prepare the terraform plan
 ```
-root@avitools:~/improved-telegram# terraform plan …
+root@avitools:~/improved-telegram# terraform plan
+
+…
 
 Plan: 33 to add, 0 to change, 0 to destroy.
 ------------------------------------------------------------------------

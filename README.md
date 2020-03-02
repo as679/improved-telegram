@@ -10,7 +10,7 @@ The current repo deploys n-number of target K8S pods with VMware NSX Advanced Lo
 
  - Adrian Steer (as679)
  - Sergey Marunich (smarunich)
- - Shawn Watson (shawn
+ - Shawn Watson (shamusx)
 
 ## Topology
 

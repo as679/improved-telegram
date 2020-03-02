@@ -5,6 +5,6 @@ avi_admin_password = ""
 avi_default_password = ""
 avi_backup_admin_username = ""
 avi_backup_admin_password = ""
-student_count = 1
+pod_count = 1
 id = "aviK8S_sample"
 vpc_cidr = "172.20.0.0/16"

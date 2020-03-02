@@ -104,11 +104,11 @@ resource "aws_security_group" "jumpbox_sg" {
 resource "aws_security_group" "k8s_sg" {
   description = "Allow incoming connections to the k8s nodes"
   vpc_id      = aws_vpc.K8S_vpc.id
-  count       = var.student_count
+  count       = var.pod_count
 
   tags = {
-    Name = "k8s_sg_student${count.index % var.student_count + 1}"
-    "kubernetes.io/cluster/student${count.index % var.student_count + 1}" = "shared"
+    Name = "k8s_sg_pod${count.index % var.pod_count + 1}"
+    "kubernetes.io/cluster/pod${count.index % var.pod_count + 1}" = "shared"
   }
 
   ingress {

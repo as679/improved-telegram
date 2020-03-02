@@ -1,4 +1,4 @@
-# This file contains various variables that affect the class itself
+# This file contains various variables that affect the deployment itself
 #
 
 # The following variables should be defined via a seperate mechanism to avoid distribution
@@ -25,8 +25,8 @@ variable "avi_backup_admin_username" {
 variable "avi_backup_admin_password" {
 }
 
-variable "student_count" {
-  description = "The class size. Each student gets a controller"
+variable "pod_count" {
+  description = "The pod size. Each pod gets a controller"
   default     = 2
 }
 
@@ -36,12 +36,12 @@ variable "lab_timezone" {
 }
 
 variable "server_count" {
-  description = "The class size. Students get a shared servers"
+  description = "K8S Workers count per pod"
   default     = 2
 }
 
 variable "master_count" {
-  description = "The class size. Students get a shared servers"
+  description = "K8S Masters count per pod"
   default     = 1
 }
 

@@ -1,12 +1,12 @@
 ---
 # ansible-playbook user_create.yml -e "ctl_ip=10.10.20.10,ctl_username=admin,..."
-- hosts: student.jumpbox
+- hosts: pod.jumpbox
   vars:
     ctl_username: admin
-    ctl_password: "{{ hostvars['student.jumpbox']['Lab_avi_default_password'] }}"
+    ctl_password: "{{ hostvars['pod.jumpbox']['Lab_avi_default_password'] }}"
     avi_users:
-      - username: "{{ hostvars['student.jumpbox']['Lab_avi_backup_admin_username'] }}"
-        password: "{{ hostvars['student.jumpbox']['Lab_avi_backup_admin_password'] }}"
+      - username: "{{ hostvars['pod.jumpbox']['Lab_avi_backup_admin_username'] }}"
+        password: "{{ hostvars['pod.jumpbox']['Lab_avi_backup_admin_password'] }}"
   roles:
     - role: avinetworks.avisdk
   tasks:

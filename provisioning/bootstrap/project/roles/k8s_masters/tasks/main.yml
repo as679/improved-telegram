@@ -79,9 +79,9 @@
     register: kubeadm_token
   - shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
     register: kubeadm_hash
-  - shell: "redis-cli -h jumpbox.student.lab hset {{ inventory_hostname }} kubeadm_token {{ kubeadm_token.stdout }}"
+  - shell: "redis-cli -h jumpbox.pod.lab hset {{ inventory_hostname }} kubeadm_token {{ kubeadm_token.stdout }}"
     register: redis_kubeadm_token
-  - shell: "redis-cli -h jumpbox.student.lab hset {{ inventory_hostname }} kubeadm_hash {{ kubeadm_hash.stdout }}"
+  - shell: "redis-cli -h jumpbox.pod.lab hset {{ inventory_hostname }} kubeadm_hash {{ kubeadm_hash.stdout }}"
     register: redis_kubeadm_hash
   when: kubeadm_config.rc > 0
 - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf get serviceaccount | grep avi
@@ -102,7 +102,7 @@
     register: avi_token_name
   - shell: "kubectl --kubeconfig /etc/kubernetes/admin.conf get secret {{ avi_token_name.stdout }} -o=jsonpath='{.data.token}' |  base64 --decode"
     register: avi_token
-  - shell: "redis-cli -h jumpbox.student.lab hset {{ inventory_hostname }} avi_token {{ avi_token.stdout }}"
+  - shell: "redis-cli -h jumpbox.pod.lab hset {{ inventory_hostname }} avi_token {{ avi_token.stdout }}"
     register: redis_avi_token
   when: kubectl_serviceaccount.rc > 0
 

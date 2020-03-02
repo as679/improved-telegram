@@ -5,8 +5,8 @@ data "template_file" "jumpbox_userdata" {
   template = file("${path.module}/userdata/jumpbox.userdata")
 
   vars = {
-    hostname     = "jumpbox.student.lab"
-    server_count = var.student_count
+    hostname     = "jumpbox.pod.lab"
+    server_count = var.pod_count
     vpc_id       = aws_vpc.K8S_vpc.id
     region       = var.aws_region
     az           = var.aws_az[var.aws_region]
@@ -30,10 +30,10 @@ resource "aws_instance" "jumpbox" {
   depends_on                  = [aws_internet_gateway.igw]
 
   tags = {
-    Name                          = "jumpbox.student.lab"
+    Name                          = "jumpbox.pod.lab"
     Owner                         = var.owner
     Lab_Group                     = "jumpbox"
-    Lab_Name                      = "jumpbox.student.lab"
+    Lab_Name                      = "jumpbox.pod.lab"
     Lab_vpc_id                    = aws_vpc.K8S_vpc.id
     Lab_avi_default_password      = var.avi_default_password
     Lab_avi_admin_password        = var.avi_admin_password

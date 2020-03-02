@@ -2,11 +2,11 @@
 #
 
 data "template_file" "master_userdata" {
-  count    = var.master_count * var.student_count
+  count    = var.master_count * var.pod_count
   template = file("${path.module}/userdata/master.userdata")
 
   vars = {
-    hostname = "master${floor(count.index / var.student_count % var.master_count + 1)}.student${count.index % var.student_count + 1}.lab"
+    hostname = "master${floor(count.index / var.pod_count % var.master_count + 1)}.pod${count.index % var.pod_count + 1}.lab"
     jumpbox_ip  = aws_instance.jumpbox.private_ip
     pubkey       = tls_private_key.generated.public_key_openssh
     number   = count.index + 1
@@ -14,7 +14,7 @@ data "template_file" "master_userdata" {
 }
 
 resource "aws_instance" "master" {
-  count                       = var.master_count * var.student_count
+  count                       = var.master_count * var.pod_count
   ami                         = var.ami_ubuntu[var.aws_region]
   availability_zone           = var.aws_az[var.aws_region]
   instance_type               = var.flavour_master
@@ -28,12 +28,12 @@ resource "aws_instance" "master" {
   depends_on        = [aws_instance.jumpbox]
 
   tags = {
-    Name         = "master${floor(count.index / var.student_count % var.master_count + 1)}.student${count.index % var.student_count + 1}.lab"
+    Name         = "master${floor(count.index / var.pod_count % var.master_count + 1)}.pod${count.index % var.pod_count + 1}.lab"
     Owner        = var.owner
     Lab_Group    = "k8s_masters"
-    Lab_Name     = "master${floor(count.index / var.student_count % var.master_count + 1)}.student${count.index % var.student_count + 1}.lab"
+    Lab_Name     = "master${floor(count.index / var.pod_count % var.master_count + 1)}.pod${count.index % var.pod_count + 1}.lab"
     Lab_Timezone = var.lab_timezone
-    "kubernetes.io/cluster/student${count.index % var.student_count + 1}" = "shared"
+    "kubernetes.io/cluster/pod${count.index % var.pod_count + 1}" = "shared"
   }
 
   root_block_device {

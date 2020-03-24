@@ -122,6 +122,7 @@
   - shell: "redis-cli -h jumpbox.pod.lab hset {{ inventory_hostname }} kubeadm_hash {{ kubeadm_hash.stdout }}"
     register: redis_kubeadm_hash
   - shell: "kubectl --kubeconfig /etc/kubernetes/admin.conf label node {{ awslocalhostname }} lab_name={{ inventory_hostname }}"
+  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/as679/studious-guide/master/dashboardserviceaccount.yml
   when: kubeadm_config.rc > 0
 - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf get serviceaccount | grep avi
   register: kubectl_serviceaccount

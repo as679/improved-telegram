@@ -1,0 +1,123 @@
+---
+- set_fact:
+    pod_id: "{{ inventory_hostname | regex_replace('^controller.pod(\\d+).lab', '\\1') }}"
+    pod_domain: "{{ inventory_hostname | regex_replace('controller.','') }}"
+    dns_vs_ip: "{{ dns_vip['obj']['results'][0]['vip'][0]['ip_address']['addr'] }}"
+    k8s_master: "{{ inventory_hostname | regex_replace('controller','master1') }}"
+
+- name: Define Kubernetes cloud dependecies
+  import_role:
+    name: avinetworks.aviconfig
+  vars:
+    avi_credentials: "{{ avi_credentials }}"
+    avi_config:
+      ipamdnsproviderprofile:
+        - name: "ipam_app.{{ pod_domain }}"
+          aws_profile:
+            use_iam_roles: true
+            vpc_id: "{{ hostvars['jumpbox.pod.lab']['Lab_vpc_id'] }}"
+            region: "{{ hostvars['jumpbox.pod.lab']['region'] }}"
+            zones:
+              - usable_network_uuids:
+                  - "{{ subnet['results'][0]['obj']['results'][0]['uuid'] }}"
+                availability_zone: "{{ hostvars['jumpbox.pod.lab']['availabilityZone'] }}"
+          type: IPAMDNS_TYPE_AWS
+        - name: "dns_app.{{ pod_domain }}"
+          internal_profile:
+            dns_service_domain:
+              - num_dns_ip: 1
+                domain_name: "app.{{ pod_domain }}"
+                pass_through: true
+            ttl: 30
+          type: IPAMDNS_TYPE_INTERNAL_DNS
+
+- wait_for:
+    host: "{{ k8s_master }}"
+    port: 6443
+    delay: 10
+
+- debug:
+    var: hostvars[k8s_master].avi_token
+
+- name: Define Kubernetes cloud dependecies
+  import_role:
+    name: avinetworks.aviconfig
+  vars:
+    avi_credentials: "{{ avi_credentials }}"
+    avi_config:
+      ipamdnsproviderprofile:
+        - name: "ipam_app.{{ pod_domain }}"
+          aws_profile:
+            use_iam_roles: true
+            vpc_id: "{{ hostvars['jumpbox.pod.lab']['Lab_vpc_id'] }}"
+            region: "{{ hostvars['jumpbox.pod.lab']['region'] }}"
+            zones:
+              - usable_network_uuids:
+                  - "{{ subnet['results'][0]['obj']['results'][0]['uuid'] }}"
+                availability_zone: "{{ hostvars['jumpbox.pod.lab']['availabilityZone'] }}"
+          type: IPAMDNS_TYPE_AWS
+        - name: "dns_app.{{ pod_domain }}"
+          internal_profile:
+            dns_service_domain:
+              - num_dns_ip: 1
+                domain_name: "app.{{ pod_domain }}"
+                pass_through: true
+            ttl: 30
+          type: IPAMDNS_TYPE_INTERNAL_DNS
+
+- set_fact:
+    oshiftk8s_configuration:
+      service_account_token: "{{ hostvars[k8s_master].avi_token }}"
+      master_nodes:
+        - "https://{{ k8s_master }}:6443"
+      docker_registry_se:
+        oshift_registry:
+          registry_service: docker-registry
+          registry_namespace: default
+        registry: avinetworks/se
+        private: false
+      enable_event_subscription: true
+      feproxy_vips_enable_proxy_arp: true
+      app_sync_frequency: 15
+      disable_auto_backend_service_sync: true
+      disable_auto_frontend_service_sync: false
+      container_port_match_http_service: true
+      se_exclude_attributes:
+        - attribute: node-role.kubernetes.io/master
+      l4_health_monitoring: true
+      se_deployment_method: SE_CREATE_POD
+      sdn_overlay: true
+      use_scheduling_disabled_nodes: false
+      avi_bridge_subnet:
+        ip_addr:
+          type: V4
+          addr: 172.18.0.1
+        mask: 16
+      disable_auto_se_creation: false
+
+- name: Discover K8S cloud configuration
+  avi_cloud:
+    avi_credentials: "{{ avi_credentials }}"
+    name: K8S
+    vtype: CLOUD_OSHIFT_K8S
+    ipam_provider_ref: "/api/ipamdnsproviderprofile?name=ipam_app.{{ pod_domain }}"
+    dns_provider_ref: "/api/ipamdnsproviderprofile?name=dns_app.{{ pod_domain }}"
+    oshiftk8s_configuration:
+      "{{ oshiftk8s_configuration }}"
+    license_type: LIC_CORES
+
+# Below code (pause + avi_cloud) is not required for production grade instances, safe grap for a slow storage instances
+
+- pause:
+    minutes: 10
+
+- name: Define K8S cloud configuration
+  avi_cloud:
+    avi_credentials: "{{ avi_credentials }}"
+    name: K8S
+    vtype: CLOUD_OSHIFT_K8S
+    ipam_provider_ref: "/api/ipamdnsproviderprofile?name=ipam_app.{{ pod_domain }}"
+    dns_provider_ref: "/api/ipamdnsproviderprofile?name=dns_app.{{ pod_domain }}"
+    oshiftk8s_configuration:
+      "{{ oshiftk8s_configuration }}"
+    license_type: LIC_CORES

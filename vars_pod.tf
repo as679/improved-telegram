@@ -37,7 +37,7 @@ variable "lab_timezone" {
 
 variable "server_count" {
   description = "K8S Workers count per pod"
-  default     = 2
+  default     = 4
 }
 
 variable "master_count" {

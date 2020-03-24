@@ -1,4 +1,10 @@
 ---
+- copy:
+    src: /home/ubuntu/.ssh/id_rsa
+    dest: /home/aviadmin/.ssh/id_rsa
+    owner: aviadmin
+    group: aviadmin
+    mode: '0600'
 - file:
     path: /etc/resolv.conf
     state: absent
@@ -24,6 +30,38 @@
         - kubectl
         - redis-tools
         - jq
+        - awscli
+        - httpie
+        - httping
+  - get_url:
+      url: https://storage.googleapis.com/kubernetes-the-hard-way/cfssl/linux/cfssl
+      dest: /usr/local/bin/cfssl
+      mode: '0777'
+  - get_url:
+      url: https://storage.googleapis.com/kubernetes-the-hard-way/cfssl/linux/cfssljson
+      dest: /usr/local/bin/cfssljson
+      mode: '0777'
+  - file:
+      path: /etc/cfssl
+      state: directory
+  - copy:
+      src: "{{ item }}"
+      dest: "/etc/cfssl/{{ item }}"
+      owner: root
+      group: root
+      mode: '0644'
+    with_items:
+      - ca-config.json
+      - ca-csr.json
+  - shell:
+      chdir: /etc/cfssl
+      cmd: cfssl gencert -initca -config /etc/cfssl/ca-config.json ca-csr.json | cfssljson -bare ca
+      creates: /etc/cfssl/ca.pem
+  - file:
+      path: /etc/cfssl/ca-key.pem
+      owner: root
+      group: root
+      mode: '0644'
   - copy:
       src: daemon.json
       dest: /etc/docker/daemon.json
@@ -83,28 +121,29 @@
     register: redis_kubeadm_token
   - shell: "redis-cli -h jumpbox.pod.lab hset {{ inventory_hostname }} kubeadm_hash {{ kubeadm_hash.stdout }}"
     register: redis_kubeadm_hash
+  - shell: "kubectl --kubeconfig /etc/kubernetes/admin.conf label node {{ awslocalhostname }} lab_name={{ inventory_hostname }}"
   when: kubeadm_config.rc > 0
 - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf get serviceaccount | grep avi
   register: kubectl_serviceaccount
   ignore_errors: yes
   changed_when: "kubectl_serviceaccount.rc != 0"
-- block:
-  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create serviceaccount avi -n default
-  - copy:
-      src: clusterrole.json
-      dest: /home/aviadmin/clusterrole.json
-  - copy:
-      src: clusterbinding.json
-      dest: /home/aviadmin/clusterbinding.json
-  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f /home/aviadmin/clusterrole.json
-  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f /home/aviadmin/clusterbinding.json
-  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf get secret | grep avi-token | cut -d' ' -f1
-    register: avi_token_name
-  - shell: "kubectl --kubeconfig /etc/kubernetes/admin.conf get secret {{ avi_token_name.stdout }} -o=jsonpath='{.data.token}' |  base64 --decode"
-    register: avi_token
-  - shell: "redis-cli -h jumpbox.pod.lab hset {{ inventory_hostname }} avi_token {{ avi_token.stdout }}"
-    register: redis_avi_token
-  when: kubectl_serviceaccount.rc > 0
+#- block:
+  #- shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create serviceaccount avi -n default
+  #- copy:
+  #    src: clusterrole.json
+  #    dest: /home/aviadmin/clusterrole.json
+  #- copy:
+  #    src: clusterbinding.json
+  #    dest: /home/aviadmin/clusterbinding.json
+  #- shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f /home/aviadmin/clusterrole.json
+  #- shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f /home/aviadmin/clusterbinding.json
+  #- shell: kubectl --kubeconfig /etc/kubernetes/admin.conf get secret | grep avi-token | cut -d' ' -f1
+  #  register: avi_token_name
+  #- shell: "kubectl --kubeconfig /etc/kubernetes/admin.conf get secret {{ avi_token_name.stdout }} -o=jsonpath='{.data.token}' |  base64 --decode"
+  #  register: avi_token
+  #- shell: "redis-cli -h jumpbox.pod.lab hset {{ inventory_hostname }} avi_token {{ avi_token.stdout }}"
+  #  register: redis_avi_token
+  #when: kubectl_serviceaccount.rc > 0
 
 - shell: helm
   register: helm_state
@@ -140,5 +179,5 @@
   - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf delete clusterrole kubernetes-dashboard
   - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f /home/ubuntu/kubernetes-dashboard-rw.yaml
 
-  - shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f /home/ubuntu/kubernetes-dashboard-ingress.yaml -n kubernetes-dashboard
+  #- shell: kubectl --kubeconfig /etc/kubernetes/admin.conf create -f /home/ubuntu/kubernetes-dashboard-ingress.yaml -n kubernetes-dashboard
   when: helm_state.rc > 0

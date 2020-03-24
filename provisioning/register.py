@@ -24,6 +24,7 @@ if not exists:
     redis_host = sys.argv[1]
     identity = get_url('http://169.254.169.254/latest/dynamic/instance-identity/document')
     identity['public-ipv4'] = get_url('http://169.254.169.254/latest/meta-data/public-ipv4')
+    identity['awslocalhostname'] = get_url('http://169.254.169.254/latest/meta-data/local-hostname')
     identity['now'] = datetime.datetime.now().isoformat()
     identity['localhostname'] = os.uname()[1]
     report = { identity['instanceId']: identity }

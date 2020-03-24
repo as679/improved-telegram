@@ -1,0 +1,16 @@
+{
+  "CN": "AviNetworks",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "GB",
+      "L": "Barnsley",
+      "O": "Avi Networks",
+      "OU": "ProServ",
+      "ST": "Yorkshire"
+    }
+  ]
+}

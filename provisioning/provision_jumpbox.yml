@@ -67,6 +67,12 @@
       name: nginx
       state: restarted
   - copy:
+      src: ../provisioning/01-central-server.conf
+      dest: /etc/rsyslog.d/01-central-server.conf
+  - systemd:
+      state: restarted
+      name: rsyslog
+  - copy:
       src: ../provisioning/handle_register.py
       dest: /usr/local/bin/handle_register.py
   - copy:
@@ -121,6 +127,7 @@
       name: systemd-resolved
       state: stopped
       enabled: no
+  - shell: cp /etc/resolv.conf ~/resolv.conf.original
   - file:
       path: /etc/resolv.conf
       state: absent

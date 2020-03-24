@@ -55,6 +55,13 @@
       state: started
       enabled: true
   - meta: refresh_inventory
-  - shell: "kubeadm join --token {{ hostvars[k8s_master].kubeadm_token }} {{ k8s_master }}:6443 --discovery-token-ca-cert-hash sha256:{{ hostvars[k8s_master].kubeadm_hash }}"
+  #- shell: "kubeadm join --token {{ hostvars[k8s_master].kubeadm_token }} {{ k8s_master }}:6443 --discovery-token-ca-cert-hash sha256:{{ hostvars[k8s_master].kubeadm_hash }}"
+  #  register: kubeadm_join
+  - template:
+      src: kubeadm.j2
+      dest: /home/ubuntu/kubeadm.yaml
+  - shell: kubeadm join --config=/home/ubuntu/kubeadm.yaml
     register: kubeadm_join
+  - shell: "kubectl --kubeconfig /etc/kubernetes/admin.conf label node {{ awslocalhostname }} lab_name={{ inventory_hostname }}"
+    delegate_to: "{{ k8s_master }}"
   when: kubeadm_config.rc > 0

@@ -141,6 +141,12 @@
     line: server=/app.{{ pod_domain }}/{{ dns_vs_ip }}
   delegate_to: localhost
   become: true
+- lineinfile:
+    dest: /etc/dnsmasq.conf
+    insertafter: EOF
+    line: server=/global.{{ pod_domain }}/{{ dns_vs_ip }}
+  delegate_to: localhost
+  become: true
 
 - systemd:
     state: restarted
@@ -166,3 +172,36 @@
     avi_api_patch_op: replace
     dns_virtualservice_refs: "/api/virtualservice/?name=vs_dns_{{ hostvars['jumpbox.pod.lab']['region'] }}"
 
+- name: Collect cluster details
+  avi_api_session:
+    avi_credentials: "{{ avi_credentials }}"
+    http_method: get
+    path: cluster
+  register: cluster
+
+- name: Define GSLB Cluster
+  import_role:
+    name: avinetworks.aviconfig
+  vars:
+    avi_credentials: "{{ avi_credentials }}"
+    avi_config:
+      gslb:
+        - name: Default
+          is_federated: true
+          sites:
+            - username: "{{ avi_credentials.username }}"
+              name: "{{ inventory_hostname }}"
+              ip_addresses:
+                - type: V4
+                  addr: "{{ hostvars[avi_credentials.controller]['privateIp'] }}"
+              enabled: true
+              member_type: GSLB_ACTIVE_MEMBER
+              cluster_uuid: "{{ cluster['obj'].uuid }}"
+              dns_vses:
+                - dns_vs_uuid: "{{ dns_vip['obj']['results'][0]['uuid'] }}"
+              hm_shard_enabled: false
+              password: "{{ avi_credentials.password }}"
+              port: 443
+          dns_configs:
+            - domain_name: "global.{{ pod_domain }}"
+          leader_cluster_uuid: "{{ cluster['obj'].uuid }}"

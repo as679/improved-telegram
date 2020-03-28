@@ -18,7 +18,7 @@ variable "flavour_server" {
 
 variable "flavour_ubuntu" {
   description = "AWS instance type for servers etc"
-  default     = "t2.medium"
+  default     = "t2.large"
 }
 
 variable "flavour_avi" {

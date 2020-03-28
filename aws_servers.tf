@@ -25,7 +25,7 @@ resource "aws_instance" "server" {
   iam_instance_profile        = aws_iam_instance_profile.k8s_iam_profile.name
   source_dest_check      = false
   user_data              = data.template_file.server_userdata[count.index].rendered
-  depends_on             = [aws_instance.jumpbox]
+  depends_on             = [aws_instance.master]
 
   tags = {
     Name      = "server${floor(count.index / var.pod_count % var.server_count + 1)}.pod${count.index % var.pod_count + 1}.lab"

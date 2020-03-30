@@ -1,0 +1,28 @@
+---
+- hosts: k8s_masters
+  tasks:
+  - apt:
+      name: python3-pip
+    become: true
+  - pip:
+      name: openshift
+    become: true
+  - k8s:
+      name: "{{ item.name }}"
+      kind: Service
+      namespace: "{{ item.namespace }}"
+      state: absent
+    with_items:
+      - { name: 'kuard', namespace: 'default'}
+      - { name: 'kubernetes-dashboard', namespace: 'kubernetes-dashboard'}
+      - { name: 'dashboard-metrics-scraper', namespace: 'kubernetes-dashboard'}
+  - k8s:
+      name: "{{ item.name }}"
+      api_version: extensions/v1beta1
+      kind: Ingress
+      namespace: "{{ item.namespace }}"
+      state: absent
+    with_items:
+      - { name: 'apples-ingress', namespace: 'fruits'}
+      - { name: 'oranges-ingress', namespace: 'fruits'}
+      - { name: 'bananas-ingress', namespace: 'fruits'}
